@@ -2047,6 +2047,9 @@ const admin={
     const cur=document.getElementById('admin-cur-std');
     if(cur){cur.textContent='ยังไม่ได้ยืนยันมาตรฐาน';cur.style.color='';}
     const srch=document.getElementById('admin-srch');if(srch)srch.value='';
+    // Reset xFilter filters ทั้งหมด
+    xFilter.filters={sub:null,std:null,prod:null,val:null};
+    xFilter.sortCol=null;xFilter.sortDir=1;xFilter._currentQ='';
     this.updateStats();xFilter.renderFiltered();
     const st=document.getElementById('admin-save-status');if(st)st.innerHTML='';
     showToast('🔄 Refresh เรียบร้อย','info','🔄');
