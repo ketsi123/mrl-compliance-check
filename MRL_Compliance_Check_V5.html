@@ -2482,7 +2482,16 @@ const xFilter={
   },
 
   apply(){
-    // allSel = pendingChecked ครอบคลุมทุกค่าของ column นั้น (allVals ที่โหลดตอน open)
+    const q=this._currentQ||'';
+    // ถ้า search อยู่ → เอาเฉพาะ visible items เป็น pendingChecked ใหม่
+    if(q){
+      const visible=this.allVals.filter(v=>v.toLowerCase().includes(q.toLowerCase()));
+      // pendingChecked = เฉพาะที่ checked ใน visible list
+      const visibleChecked=visible.filter(v=>this.pendingChecked.has(v));
+      // เพิ่ม visible ที่ checked + เก็บ checked นอก visible ไว้ด้วย
+      const outsideChecked=[...this.pendingChecked].filter(v=>!visible.includes(v));
+      this.pendingChecked=new Set([...outsideChecked,...visibleChecked]);
+    }
     const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
     this.filters[this.col]=allSel?null:[...this.pendingChecked];
     this._currentQ='';
