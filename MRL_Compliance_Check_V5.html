@@ -154,13 +154,13 @@ body{font-family:var(--font);background:#E8EDF5;color:var(--tx);min-height:100vh
   color:var(--t2);margin:12px 0 7px;display:flex;align-items:center;gap:8px;
   background:var(--sf2);padding:4px 10px;border-radius:6px;border:1px solid var(--bd2);
   width:fit-content;}
-.srow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.srow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;overflow:hidden}
 .sc{
   padding:6px 14px;border-radius:var(--rx);font-size:12px;font-weight:600;
   border:1.5px solid var(--bd);background:var(--sf);color:var(--t2);
   cursor:pointer;transition:all .12s;font-family:var(--font);
   box-shadow:var(--sh);display:inline-flex;align-items:center;gap:4px;
-  max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  max-width:260px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .sc:hover{border-color:var(--blue);color:var(--blue);background:var(--bl)}
 .sc.rel{border-color:var(--bd2);color:var(--tx)}
@@ -289,8 +289,8 @@ tr:hover td{background:#FAFCFF}
 .mc-icon{font-size:24px;margin-bottom:6px}
 .mc-name{font-size:13px;font-weight:800;margin-bottom:3px}
 .mc-desc{font-size:11px;color:var(--t3)}
-.scope-box{background:var(--sf2);border:1.5px solid var(--bd);border-radius:var(--rl2);padding:14px 16px;margin-bottom:16px}
-.scope-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
+.scope-box{background:var(--sf2);border:1.5px solid var(--bd);border-radius:var(--rl2);padding:14px 16px;margin-bottom:16px;overflow:hidden}
+.scope-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;overflow:hidden;min-width:0}
 .scope-row:last-child{margin-bottom:0}
 .scope-key{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;
   letter-spacing:.06em;white-space:nowrap;min-width:55px;padding-top:7px}
@@ -1178,7 +1178,7 @@ function buildStds(areaId,allId,cbStd,cbAll,prods){
     h+=`<div class="sgl" style="${gs}">${g}</div><div class="srow">`;
     for(const{s,m,rel,prods:sp} of items){
       const badges=sp.map(p=>`<span style="font-size:12px">${EMOJI[p]}</span>`).join('');
-      h+=`<div class="sc ${rel?'rel':'dim'}" data-s="${s}" onclick="${cbStd}('${s}')">${m.label||s} ${badges}</div>`;
+      h+=`<div class="sc ${rel?'rel':'dim'}" data-s="${s}" onclick="${cbStd}('${s}')" title="${m.label||s}">${m.label||s} ${badges}</div>`;
     }
     h+='</div>';
   }
@@ -1569,6 +1569,7 @@ const t2={
   _closeFilterC(){
     const dd=document.getElementById('t2c-filter-dd');
     if(dd) dd.style.display='none';
+    t2._applyFilterC();
   },
   _renderDdListC(subs){
     const list=document.getElementById('t2c-dd-list');
