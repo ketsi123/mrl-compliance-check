@@ -2532,9 +2532,9 @@ const xFilter={
   },
 
   apply(){
-    // allSel = pendingChecked ครอบคลุมทุกค่าของ column นั้น (allVals ที่โหลดตอน open)
     const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
     this.filters[this.col]=allSel?null:[...this.pendingChecked];
+    console.log('[xFilter.apply] col='+this.col+' allSel='+allSel+' pendingSize='+this.pendingChecked.size+' allValsSize='+this.allVals.length+' filter='+JSON.stringify(this.filters[this.col]?.slice(0,3)));
     this._currentQ='';
     this.close();
     this.renderFiltered();
