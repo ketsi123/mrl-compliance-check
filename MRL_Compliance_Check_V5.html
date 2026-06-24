@@ -34,7 +34,7 @@ body{font-family:var(--font);background:#E8EDF5;color:var(--tx);min-height:100vh
 #bento-landing{display:block}
 #bento-landing.hidden{display:none}
 .bento-wrap{min-height:calc(100vh - 58px);background:linear-gradient(135deg,#E0E7FF 0%,#F0F4FF 40%,#EDE9FE 70%,#FCE7F3 100%);padding:24px 20px;display:flex;justify-content:center;align-items:center}
-.bento-box{background:transparent;border-radius:16px;width:100%;position:relative;overflow:hidden;box-shadow:none;border:none}
+.bento-box{background:transparent;border-radius:16px;width:100%;position:relative;box-shadow:none;border:none}
 .bento-bg-glow{position:absolute;top:-80px;left:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(200,210,255,.25) 0%,transparent 65%);pointer-events:none}
 .bento-bg-glow2{position:absolute;bottom:-100px;right:-60px;width:400px;height:400px;background:radial-gradient(circle,rgba(180,220,255,.15) 0%,transparent 65%);pointer-events:none}
 .bento-circles{position:absolute;inset:0;pointer-events:none}
@@ -668,7 +668,7 @@ tr:hover td{background:#FAFCFF}
   </div>
 </div>
 
-<div class="wrap hidden" id="main-wrap">
+<div class="wrap" id="main-wrap" style="display:none">
   <div class="tab-bar">
     <button class="tab-btn tab-home" onclick="showLanding()" title="กลับหน้าหลัก">🏠</button>
     <button class="tab-btn active" onclick="swTab(0)">📋 รายการตรวจ</button>
@@ -1024,17 +1024,16 @@ let wSTD=JSON.parse(JSON.stringify(STD_META));
 // ════ UTILS ════
 function bentoGo(i){
   document.getElementById('bento-landing').classList.add('hidden');
-  document.getElementById('main-wrap').classList.remove('hidden');
+  document.getElementById('main-wrap').style.display='block';
   swTab(i);
 }
 function showLanding(){
-  // update stats before showing
   const ns=document.getElementById('b-nsub');
   const nm=document.getElementById('b-nstd');
   if(ns)ns.textContent=(wDATA||DATA).length;
   if(nm)nm.textContent=Object.keys(wSTD||STD_META).length;
   document.getElementById('bento-landing').classList.remove('hidden');
-  document.getElementById('main-wrap').classList.add('hidden');
+  document.getElementById('main-wrap').style.display='none';
 }
 function openEditModal(sub,std,prod,val){
   document.getElementById('em-sub').value=sub;
