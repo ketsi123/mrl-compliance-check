@@ -582,6 +582,26 @@ tr:hover td{background:#FAFCFF}
 .xf-dd-cancel{background:#fff;color:var(--t2);border:1.5px solid #BFDBFE!important}.xf-dd-cancel:hover{background:#EFF6FF}
 .xf-dd-selall{padding:5px 10px;font-size:11px;color:var(--blue);cursor:pointer;font-weight:700;border-bottom:1px solid #DBEAFE;margin-bottom:2px}
 .xf-dd-selall:hover{background:#EFF6FF;border-radius:var(--rs)}
+/* FAB Refresh */
+.fab-refresh{
+  position:fixed;bottom:28px;right:28px;
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#0891B2,#0E7490);
+  color:#fff;font-size:22px;border:none;cursor:pointer;
+  box-shadow:0 4px 16px rgba(8,145,178,.45),0 2px 6px rgba(0,0,0,.15);
+  display:none;align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s;z-index:1000;
+}
+.fab-refresh.show{display:flex}
+.fab-refresh:hover{transform:scale(1.1) rotate(30deg);box-shadow:0 6px 20px rgba(8,145,178,.55)}
+.fab-refresh:active{transform:scale(.93)}
+.fab-tip{
+  position:fixed;bottom:86px;right:16px;
+  background:#0F172A;color:#fff;font-size:11px;font-weight:700;
+  padding:5px 10px;border-radius:6px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .15s;z-index:1001;
+}
+.fab-refresh:hover + .fab-tip{opacity:1}
 </style>
 </head>
 <body>
@@ -598,8 +618,6 @@ tr:hover td{background:#FAFCFF}
   </div>
   <div class="topbar-right">
     <div class="db-version-badge draft" id="db-ver-badge" title="Database version">📦 Draft</div>
-    <span class="ak-lbl" title="Google Apps Script URL สำหรับเชื่อมต่อ Google Sheets">☁️ GAS:</span>
-    <input class="ak-inp" type="text" id="gas-url" placeholder="https://script.google.com/macros/s/..." oninput="saveGasUrl()" style="width:200px;font-size:10px">
     <span class="ak-lbl">🔑 API Key:</span>
     <input class="ak-inp" type="password" id="api-key" placeholder="sk-ant-api03-..." oninput="chkKey()">
     <div class="ak-ok" id="ak-ok">✓ พร้อมใช้งาน</div>
@@ -848,8 +866,11 @@ tr:hover td{background:#FAFCFF}
           <h3>1. โหลดหรือบันทึกฐานข้อมูล <span style="font-size:12px;font-weight:400;color:var(--t3)">(ไม่จำเป็นต้องทำ)</span></h3>
           <div class="admin-card-sub">Import ไฟล์ Excel ที่มี sheets: Substances, Standards, Limits หรือใช้ข้อมูลที่ฝังใน HTML แล้ว export เมื่อแก้เสร็จ</div>
           <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:12px 14px;margin-bottom:12px">
-            <div style="font-size:12px;font-weight:700;color:#15803D;margin-bottom:8px">☁️ Google Sheets Database</div>
-            <div style="font-size:11px;color:#166534;margin-bottom:10px">ใส่ GAS URL ที่ topbar แล้วกดปุ่มด้านล่างเพื่อดึงหรือสร้างข้อมูลใน Sheet</div>
+            <div style="font-size:12px;font-weight:700;color:#15803D;margin-bottom:6px">☁️ Google Sheets Database</div>
+            <div class="admin-field" style="margin-bottom:8px">
+              <label style="font-size:10px;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.04em">GAS URL</label>
+              <input class="admin-input" type="text" id="gas-url" placeholder="https://script.google.com/macros/s/..." oninput="saveGasUrl()" style="font-size:11px;font-family:'IBM Plex Mono',monospace">
+            </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="admin-btn" onclick="syncFromSheet()" style="background:#0D9488;color:#fff;border-color:#0D9488;font-size:12px">☁️ ดึงข้อมูลจาก Sheets</button>
               <button class="admin-btn sec" onclick="initSheets()" style="font-size:11px">🔧 สร้าง Sheet Headers</button>
@@ -863,7 +884,6 @@ tr:hover td{background:#FAFCFF}
             <button class="admin-btn grn" onclick="admin.exportExcel()">💾 Export Excel</button>
             <button class="admin-btn sec" onclick="admin.exportJson()">📄 Export JSON</button>
             <button class="admin-btn sec" onclick="admin.resetToEmbedded()">↩ ใช้ข้อมูลใน HTML</button>
-            <button class="admin-btn sec" onclick="admin.refreshForms()" style="background:var(--tl);color:var(--teal);border:1.5px solid var(--teal)">🔄 Refresh หน้านี้</button>
             <button class="admin-btn sec" onclick="admin.logout()">ออกจาก Admin</button>
           </div>
           <div class="admin-status" id="admin-import-status">พร้อมใช้งานจากข้อมูลที่ฝังใน HTML</div>
@@ -1037,6 +1057,8 @@ function showLanding(){
   if(nm)nm.textContent=Object.keys(wSTD||STD_META).length;
   document.getElementById('bento-landing').classList.remove('hidden');
   document.getElementById('main-wrap').style.display='none';
+  const fab=document.getElementById('fab-refresh');
+  if(fab)fab.classList.remove('show');
 }
 function openEditModal(sub,std,prod,val){
   document.getElementById('em-sub').value=sub;
@@ -1128,6 +1150,8 @@ function swTab(i){
   const tabs=document.querySelectorAll('.tab-btn:not(.tab-home)');
   tabs.forEach((b,j)=>b.classList.toggle('active',j===i));
   document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+  const fab=document.getElementById('fab-refresh');
+  if(fab)fab.classList.toggle('show',i===2);
 }
 function chkKey(){
   const k=document.getElementById('api-key').value.trim();
@@ -2961,6 +2985,10 @@ function ddr(e){
     </div>
   </div>
 </div>
+
+<!-- FAB Refresh (Admin only) -->
+<button class="fab-refresh" id="fab-refresh" onclick="admin.refreshForms()" title="Refresh ฟอร์ม Admin">🔄</button>
+<div class="fab-tip">Refresh ฟอร์ม Admin</div>
 
 </body>
 </html>
