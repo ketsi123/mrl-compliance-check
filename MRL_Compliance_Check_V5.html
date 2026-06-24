@@ -1100,6 +1100,7 @@ function saveEditModal(){
   const gasUrl=getGasUrl();
   if(gasUrl) gasCall({action:'saveLimit',sub,std,prod,val}).then(r=>{
     if(r?.ok) showToast('☁️ อัปเดตลง Google Sheets แล้ว','info','☁️');
+    else if(r?.error) console.warn('[GAS] saveLimit error:',r.error);
   });
 }
 // ══════════════════════════════════════════
@@ -1115,29 +1116,60 @@ async function gasCall(body){
   try{
     const res = await fetch(url, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(body),
+      redirect:'follow',
+      mode:'cors'
     });
-    return await res.json();
+    const text = await res.text();
+    try{ return JSON.parse(text); }
+    catch(e){ return {error:'parse error: '+text.slice(0,200)}; }
   }catch(e){
     console.error('GAS error:', e);
     return {error: e.message};
   }
 }
+async function autoSyncFromSheet(){
+  const url=getGasUrl();if(!url)return;
+  // แสดง loading indicator เบาๆ ที่ topbar badge
+  const badge=document.getElementById('db-ver-badge');
+  if(badge){badge._origText=badge.textContent;badge.textContent='⏳ กำลังโหลด...';}
+  try{
+    const res=await gasCall({action:'read'});
+    if(!res||res.error){
+      if(badge)badge.textContent=badge._origText||'📦 Draft';
+      return; // silent fail — ใช้ embedded DATA แทน
+    }
+    if(res.DATA&&res.DATA.length>0){
+      wDATA=res.DATA; wSTD=res.STD_META;
+      admin.updateStats&&admin.updateStats();
+      admin.fillSubList&&admin.fillSubList();
+      admin.fillGrpList&&admin.fillGrpList();
+      admin.fillStdSel&&admin.fillStdSel();
+      t1.render&&t1.render();
+      pub.updateBadge&&pub.updateBadge();
+      if(badge)badge.textContent='☁️ '+( pub.getCurrent()?.version!=='0.0.0'?'v'+pub.getCurrent().version:'Synced');
+      console.log('[GAS] auto-sync OK: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน');
+    } else {
+      // Sheet ว่าง — ใช้ embedded DATA แล้วแจ้ง
+      if(badge)badge.textContent=badge._origText||'📦 Draft';
+      console.log('[GAS] Sheets ว่าง — ใช้ embedded DATA');
+    }
+  }catch(e){
+    if(badge)badge.textContent=badge._origText||'📦 Draft';
+    console.warn('[GAS] auto-sync failed:',e);
+  }
+}
 async function syncFromSheet(){
-  const url = getGasUrl();
-  if(!url){ showToast('กรุณาใส่ GAS URL ก่อน','warn','☁️'); return; }
+  const url=getGasUrl();
+  if(!url){showToast('กรุณาใส่ GAS URL ก่อน','warn','☁️');return;}
   showToast('⏳ กำลังดึงข้อมูลจาก Google Sheets...','info','☁️');
-  const res = await gasCall({action:'read'});
-  if(!res || res.error){ showToast('❌ ดึงข้อมูลไม่ได้: '+(res?.error||'unknown'),'warn','❌'); return; }
-  wDATA = res.DATA;
-  wSTD  = res.STD_META;
-  admin.updateStats();
-  admin.fillSubList();
-  admin.fillGrpList();
-  admin.fillProdList();
-  t1.render();
-  xFilter.renderFiltered();
+  const res=await gasCall({action:'read'});
+  if(!res||res.error){showToast('❌ ดึงข้อมูลไม่ได้: '+(res?.error||'unknown'),'warn','❌');return;}
+  if(!res.DATA||res.DATA.length===0){showToast('⚠️ Sheets ยังว่างอยู่ — ใช้ข้อมูลใน HTML แทน','warn','☁️');return;}
+  wDATA=res.DATA; wSTD=res.STD_META;
+  admin.updateStats();admin.fillSubList();admin.fillGrpList();admin.fillProdList();admin.fillStdSel();
+  t1.render();xFilter.renderFiltered();
   showToast('✅ ซิงค์จาก Google Sheets สำเร็จ: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน','info','✅');
 }
 async function initSheets(){
@@ -1170,6 +1202,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const seg=document.getElementById('admin-sub-seg');if(seg)seg.value='';
   pub.init();
   xFilter.init();
+  // Auto-sync จาก Google Sheets ถ้ามี GAS URL
+  if(getGasUrl()) autoSyncFromSheet();
 });
 window.addEventListener('beforeunload',(e)=>{
   if(draftMgr.isDirty){
@@ -2104,6 +2138,12 @@ const admin={
       setTimeout(()=>{card3.style.boxShadow='';},1500);
       card3.scrollIntoView({behavior:'smooth',block:'nearest'});
     }
+    // GAS sync
+    const gasUrl=getGasUrl();
+    if(gasUrl) gasCall({action:'saveStandard',name,label:name,group:g,note,country:name}).then(r=>{
+      if(r?.ok) showToast('☁️ บันทึกมาตรฐานลง Google Sheets แล้ว','info','☁️');
+      else if(r?.error) console.warn('[GAS] saveStandard error:',r.error);
+    });
   },
   saveLim(){
     const std=document.getElementById('admin-cur-std').textContent;
@@ -2169,6 +2209,12 @@ const admin={
     draftMgr.markDirty();
     this.updateStats();this.refreshPreview();this.saveToStorage();
     showToast(`ลบ <strong>${sub}</strong> × ${prod} แล้ว<br><span style="opacity:.8;font-size:11px">${std}</span>`,'warn','🗑️');
+    // GAS sync
+    const gasUrl=getGasUrl();
+    if(gasUrl) gasCall({action:'deleteLimit',sub,std,prod}).then(r=>{
+      if(r?.ok) showToast('☁️ ลบออกจาก Google Sheets แล้ว','info','☁️');
+      else if(r?.error) console.warn('[GAS] deleteLimit error:',r.error);
+    });
   },
   fillFormFromRow(sub,std,prod,val){
     // Set standard in card 2
