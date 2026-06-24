@@ -2731,7 +2731,7 @@ const pub={
   },
   generateReleaseNote(){
     const log=admin.auditLog||[];
-    if(!log.length)return '';
+    if(!log.length)return 'Release note จะถูกสร้างอัตโนมัติจาก Audit Log\n(แก้ไขเพิ่มเติมได้)';
     const adds=[],updates=[],dels=[];
     log.forEach(e=>{
       if(e.type==='add')adds.push(e.data);
