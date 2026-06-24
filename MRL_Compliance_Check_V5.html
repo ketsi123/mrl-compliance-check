@@ -1137,7 +1137,9 @@ async function autoSyncFromSheet(){
       admin.fillSubList&&admin.fillSubList();
       admin.fillGrpList&&admin.fillGrpList();
       admin.fillStdSel&&admin.fillStdSel();
+      admin.fillProdList&&admin.fillProdList();
       t1.render&&t1.render();
+      xFilter.renderFiltered&&xFilter.renderFiltered();
       pub.updateBadge&&pub.updateBadge();
       if(badge)badge.textContent='☁️ '+( pub.getCurrent()?.version!=='0.0.0'?'v'+pub.getCurrent().version:'Synced');
       console.log('[GAS] auto-sync OK: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน');
