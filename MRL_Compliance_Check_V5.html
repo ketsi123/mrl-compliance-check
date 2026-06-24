@@ -1504,22 +1504,83 @@ const t2={
     this.stdC=s;
     document.querySelectorAll('#t2c-stds .sc').forEach(c=>c.classList.toggle('sel',c.dataset.s===s));
     if(!s) return;
-    const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][this.prodC]);
+    const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][this.prodC]).sort((a,b)=>a.name.localeCompare(b.name));
+    this._subsC=subs;
     const area=document.getElementById('t2c-input-area');
-    const rows=document.getElementById('t2c-rows');
-    if(!area||!rows) return;
-    rows.innerHTML='';
-    subs.forEach(d=>{
-      rows.innerHTML+=`<div style="display:grid;grid-template-columns:1fr 130px 90px;gap:8px;align-items:center;padding:4px 0">
-        <div style="font-size:12px;font-weight:600;color:var(--tx)">${d.name}</div>
-        <input type="number" placeholder="ค่าที่พบ" data-sub="${d.name}" class="admin-input" style="padding:7px 10px;font-size:12px" step="any" min="0">
-        <select data-unit="${d.name}" class="admin-input" style="padding:7px 8px;font-size:11px">
-          <option value="ppb">ppb (µg/kg)</option>
-          <option value="ppm">ppm (mg/kg)</option>
-        </select>
-      </div>`;
-    });
+    if(!area) return;
     area.style.display='';
+    this._renderTableC(subs);
+  },
+  _subsC:[],
+  _renderTableC(subs){
+    const area=document.getElementById('t2c-input-area');
+    if(!area) return;
+    area.innerHTML=`
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+        <div style="font-size:13px;font-weight:700;color:var(--tx)">📝 กรอกผลการตรวจ</div>
+        <input id="t2c-search" type="text" placeholder="🔍 ค้นหาสาร..." class="admin-input"
+          style="flex:1;min-width:160px;padding:6px 10px;font-size:12px"
+          oninput="t2._filterTableC(this.value)">
+        <button onclick="t2._sortTableC()" style="border:1.5px solid var(--bd);background:#fff;border-radius:var(--rs);padding:6px 12px;font-size:11px;cursor:pointer;color:var(--blue);font-weight:700">A→Z</button>
+        <button onclick="t2._checkAllC(true)" style="border:1.5px solid var(--gm);background:#F0FDF4;border-radius:var(--rs);padding:6px 12px;font-size:11px;cursor:pointer;color:#15803D;font-weight:700">✓ เลือกทั้งหมด</button>
+        <button onclick="t2._checkAllC(false)" style="border:1.5px solid var(--bd);background:var(--sf2);border-radius:var(--rs);padding:6px 12px;font-size:11px;cursor:pointer;color:var(--t2);font-weight:700">✕ ล้าง</button>
+      </div>
+      <div style="border:1.5px solid var(--bd);border-radius:var(--rl2);overflow:hidden;margin-bottom:12px">
+        <table style="width:100%;border-collapse:collapse" id="t2c-table">
+          <thead>
+            <tr style="background:#E8EDF5">
+              <th style="padding:8px 10px;width:36px;text-align:center"><input type="checkbox" id="t2c-all-cb" onchange="t2._checkAllC(this.checked)" checked style="cursor:pointer;accent-color:var(--blue)"></th>
+              <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#475569;cursor:pointer" onclick="t2._sortTableC()">ชื่อสาร ↕</th>
+              <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#475569;width:140px">เกณฑ์</th>
+              <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#475569;width:140px">ค่าที่พบ</th>
+              <th style="padding:8px 8px;font-size:11px;font-weight:700;color:#475569;width:110px">หน่วย</th>
+            </tr>
+          </thead>
+          <tbody id="t2c-tbody"></tbody>
+        </table>
+      </div>
+      <button onclick="t2.addRowC()" style="border:1.5px dashed var(--bd2);background:none;border-radius:var(--r);padding:7px 16px;font-size:12px;color:var(--blue);cursor:pointer;width:100%;margin-bottom:10px">+ เพิ่มสารนอก scope</button>
+      <button onclick="t2.checkC()" class="abtn rdy" style="width:100%">🔍 ตรวจสอบ</button>
+    `;
+    this._fillTbodyC(subs);
+  },
+  _sortAsc:true,
+  _sortTableC(){
+    this._sortAsc=!this._sortAsc;
+    const sorted=[...this._subsC].sort((a,b)=>this._sortAsc?a.name.localeCompare(b.name):b.name.localeCompare(a.name));
+    this._fillTbodyC(sorted);
+  },
+  _filterTableC(q){
+    const filtered=this._subsC.filter(d=>d.name.toLowerCase().includes(q.toLowerCase()));
+    this._fillTbodyC(filtered);
+  },
+  _fillTbodyC(subs){
+    const tbody=document.getElementById('t2c-tbody');
+    if(!tbody) return;
+    const mrl_std=this.stdC; const mrl_prod=this.prodC;
+    tbody.innerHTML=subs.map((d,i)=>{
+      const mrl=d.std_mrls[mrl_std]?.[mrl_prod]||'';
+      return `<tr style="background:${i%2?'var(--sf2)':'var(--sf)'}" data-sub-row="${d.name}">
+        <td style="padding:6px 10px;text-align:center"><input type="checkbox" class="t2c-cb" data-sub="${d.name}" checked style="cursor:pointer;accent-color:var(--blue)"></td>
+        <td style="padding:6px 12px;font-size:12px;font-weight:600;color:var(--tx)">${d.name}</td>
+        <td style="padding:6px 12px;text-align:right;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--t2)">${mrl}</td>
+        <td style="padding:4px 8px;text-align:right">
+          <input type="number" data-sub="${d.name}" class="admin-input t2c-val"
+            style="padding:5px 8px;font-size:12px;text-align:right;width:100%" step="any" min="0" placeholder="0">
+        </td>
+        <td style="padding:4px 6px">
+          <select data-unit="${d.name}" class="admin-input" style="padding:5px 6px;font-size:11px;width:100%">
+            <option value="ppb">ppb (µg/kg)</option>
+            <option value="ppm">ppm (mg/kg)</option>
+          </select>
+        </td>
+      </tr>`;
+    }).join('');
+  },
+  _checkAllC(checked){
+    document.querySelectorAll('.t2c-cb').forEach(cb=>cb.checked=checked);
+    const allCb=document.getElementById('t2c-all-cb');
+    if(allCb) allCb.checked=checked;
   },
   addRowC(){
     const rows=document.getElementById('t2c-rows');
@@ -1535,15 +1596,16 @@ const t2={
   },
   checkC(){
     if(!this.stdC||!this.prodC){ showToast('เลือกสินค้าและมาตรฐานก่อน','warn','⚠️'); return; }
-    const rows=document.getElementById('t2c-rows');
     const res=document.getElementById('t2c-res');
-    if(!rows||!res) return;
+    if(!res) return;
     const results=[];
-    rows.querySelectorAll('[data-sub]').forEach(inp=>{
-      const sub=inp.dataset.sub;
-      const val=parseFloat(inp.value);
-      if(isNaN(val)||inp.value==='') return;
-      const unit=rows.querySelector(`[data-unit="${sub}"]`)?.value||'ppb';
+    // แถวจากตาราง (เฉพาะที่ติ๊ก checkbox)
+    document.querySelectorAll('.t2c-cb:checked').forEach(cb=>{
+      const sub=cb.dataset.sub;
+      const valInp=document.querySelector(`.t2c-val[data-sub="${sub}"]`);
+      const val=parseFloat(valInp?.value);
+      if(isNaN(val)||!valInp?.value) return;
+      const unit=document.querySelector(`select[data-unit="${sub}"]`)?.value||'ppb';
       const valPpb=unit==='ppm'?val*1000:val;
       const item=wDATA.find(d=>d.name===sub);
       const mrl=item?.std_mrls[this.stdC]?.[this.prodC];
@@ -1553,12 +1615,12 @@ const t2={
       results.push({sub,val:valPpb,mrl,pass});
     });
     // แถว custom
-    rows.querySelectorAll('[data-sub-custom]').forEach(inp=>{
+    document.querySelectorAll('[data-sub-custom]').forEach(inp=>{
       const sub=inp.value.trim(); if(!sub) return;
-      const valInp=inp.closest('div').querySelector('[data-val-custom]');
-      const val=parseFloat(valInp?.value);
+      const row=inp.closest('div');
+      const val=parseFloat(row?.querySelector('[data-val-custom]')?.value);
       if(isNaN(val)) return;
-      const unit=inp.closest('div').querySelector('[data-unit-custom]')?.value||'ppb';
+      const unit=row?.querySelector('[data-unit-custom]')?.value||'ppb';
       const valPpb=unit==='ppm'?val*1000:val;
       const item=wDATA.find(d=>d.name===sub);
       const mrl=item?.std_mrls[this.stdC]?.[this.prodC]||'N/A';
@@ -1579,20 +1641,22 @@ const t2={
         </div>
         <div style="flex:1;display:flex;align-items:center;font-size:13px;color:var(--t2)">${this.prodC} × ${this.stdC}</div>
       </div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead><tr style="background:#E8EDF5">
-          <th style="padding:8px 12px;text-align:left;font-weight:700;color:#475569">สาร</th>
-          <th style="padding:8px 12px;text-align:right;font-weight:700;color:#475569">ค่าที่พบ (ppb)</th>
-          <th style="padding:8px 12px;text-align:right;font-weight:700;color:#475569">เกณฑ์ (ppb)</th>
-          <th style="padding:8px 12px;text-align:center;font-weight:700;color:#475569">ผล</th>
-        </tr></thead>
-        <tbody>${results.map((r,i)=>`<tr style="background:${i%2?'var(--sf2)':'var(--sf)'}">
-          <td style="padding:7px 12px;font-weight:600">${r.sub}</td>
-          <td style="padding:7px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700">${r.val.toLocaleString()}</td>
-          <td style="padding:7px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--t2)">${r.mrl}</td>
-          <td style="padding:7px 12px;text-align:center"><span style="background:${r.pass===true?'#DCFCE7':r.pass===false?'#FEE2E2':'#F3F4F6'};color:${r.pass===true?'#15803D':r.pass===false?'#DC2626':'#6B7280'};padding:2px 10px;border-radius:20px;font-weight:700;font-size:11px">${r.pass===true?'PASS':r.pass===false?'FAIL':'N/A'}</span></td>
-        </tr>`).join('')}</tbody>
-      </table>
+      <div style="border:1.5px solid var(--bd);border-radius:var(--rl2);overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#E8EDF5">
+            <th style="padding:8px 12px;text-align:left;font-weight:700;color:#475569">สาร</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:700;color:#475569">ค่าที่พบ (ppb)</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:700;color:#475569">เกณฑ์ (ppb)</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#475569">ผล</th>
+          </tr></thead>
+          <tbody>${results.map((r,i)=>`<tr style="background:${i%2?'var(--sf2)':'var(--sf)'}">
+            <td style="padding:7px 12px;font-weight:600">${r.sub}</td>
+            <td style="padding:7px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700">${r.val.toLocaleString()}</td>
+            <td style="padding:7px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--t2)">${r.mrl}</td>
+            <td style="padding:7px 12px;text-align:center"><span style="background:${r.pass===true?'#DCFCE7':r.pass===false?'#FEE2E2':'#F3F4F6'};color:${r.pass===true?'#15803D':r.pass===false?'#DC2626':'#6B7280'};padding:2px 10px;border-radius:20px;font-weight:700;font-size:11px">${r.pass===true?'PASS':r.pass===false?'FAIL':'N/A'}</span></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
     </div>`;
   },
   sp(p){
