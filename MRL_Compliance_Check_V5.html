@@ -2417,14 +2417,16 @@ const xFilter={
   },
 
   apply(){
-    const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
+    // allSel = เลือกครบทุกค่าที่เป็นไปได้ทั้งหมด (ไม่ใช่แค่ที่แสดงใน dropdown ปัจจุบัน)
+    const allRows=this._getRows();
+    const allPossible=[...new Set(allRows.map(r=>String(r[this.col]||'')))];
+    const allSel=allPossible.length>0&&allPossible.every(v=>this.pendingChecked.has(v));
     this.filters[this.col]=allSel?null:[...this.pendingChecked];
+    console.log('[xFilter.apply] col='+this.col+' allSel='+allSel+' filter='+JSON.stringify(this.filters[this.col]));
     this.close();
     this.renderFiltered();
-    // feedback
     const filtered=!allSel&&this.pendingChecked.size>0;
     if(filtered) showToast(`กรอง ${this.col.toUpperCase()}: ${this.pendingChecked.size} รายการ`,'info','▼');
-    // scroll to table
     setTimeout(()=>{
       const tbl=document.getElementById('admin-preview');
       if(tbl) tbl.scrollIntoView({behavior:'smooth',block:'nearest'});
