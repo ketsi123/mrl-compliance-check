@@ -940,7 +940,7 @@ tr:hover td{background:#FAFCFF}
           <div class="admin-row">
             <div class="admin-field">
               <label>สินค้า</label>
-              <input class="admin-input" id="admin-lim-prod" list="admin-prod-list" placeholder="Pork, Egg, Chicken, Shrimp หรือพิมพ์ใหม่">
+              <input class="admin-input" id="admin-lim-prod" list="admin-prod-list" placeholder="Pork, Egg, Chicken, Shrimp หรือพิมพ์ใหม่" autocomplete="off">
               <datalist id="admin-prod-list">
                 <option value="Pork"><option value="Egg"><option value="Chicken"><option value="Shrimp">
                 <option value="Poultry"><option value="ตับไก่"><option value="ไข่สด"><option value="ไก่เนื้อ">
@@ -957,7 +957,7 @@ tr:hover td{background:#FAFCFF}
           </div>
           <div class="admin-field">
             <label>ชื่อสาร</label>
-            <input class="admin-input" id="admin-sub-name" list="admin-sub-list" placeholder="พิมพ์ชื่อสาร เช่น Amoxicillin" oninput="admin.autoFillSubInfo(this.value)">
+            <input class="admin-input" id="admin-sub-name" list="admin-sub-list" placeholder="พิมพ์ชื่อสาร เช่น Amoxicillin" oninput="admin.autoFillSubInfo(this.value)" autocomplete="off">
             <datalist id="admin-sub-list"></datalist>
           </div>
           <div class="admin-row">
@@ -972,18 +972,18 @@ tr:hover td{background:#FAFCFF}
             </div>
             <div class="admin-field">
               <label>กลุ่มสาร (Group)</label>
-              <input class="admin-input" id="admin-sub-grp" placeholder="เช่น ß-LACTAM, Tetracyclines" list="admin-grp-list">
+              <input class="admin-input" id="admin-sub-grp" placeholder="เช่น ß-LACTAM, Tetracyclines" list="admin-grp-list" autocomplete="off">
               <datalist id="admin-grp-list"></datalist>
             </div>
           </div>
           <div class="admin-row">
             <div class="admin-field">
               <label>ค่า Limit</label>
-              <input class="admin-input" id="admin-lim-val" placeholder="40 หรือ ต้องตรวจไม่พบ">
+              <input class="admin-input" id="admin-lim-val" placeholder="40 หรือ ต้องตรวจไม่พบ" autocomplete="off">
             </div>
             <div class="admin-field">
               <label>Unit</label>
-              <input class="admin-input" id="admin-lim-unit" placeholder="ug/kg, ppb">
+              <input class="admin-input" id="admin-lim-unit" placeholder="ug/kg, ppb" autocomplete="off">
             </div>
           </div>
           <div class="admin-field">
@@ -1163,6 +1163,11 @@ function chkKey(){
 document.addEventListener('DOMContentLoaded',()=>{
   try{const s=localStorage.getItem('ra_key');if(s){document.getElementById('api-key').value=s;chkKey();}}catch(e){}
   try{const g=localStorage.getItem('gas_url');if(g){document.getElementById('gas-url').value=g;}}catch(e){}
+  // Reset admin form fields เพื่อป้องกัน browser autofill
+  ['admin-sub-name','admin-lim-prod','admin-lim-val','admin-sub-grp','admin-lim-unit','admin-std-name','admin-std-id','admin-std-note'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const seg=document.getElementById('admin-sub-seg');if(seg)seg.value='';
   pub.init();
   xFilter.init();
 });
