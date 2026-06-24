@@ -1175,6 +1175,10 @@ function swTab(i){
   document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
   const fab=document.getElementById('fab-refresh');
   if(fab)fab.classList.toggle('show',i===2);
+  // re-render admin table เมื่อ switch มา Admin tab
+  if(i===2&&document.getElementById('admin-app')?.style.display!=='none'){
+    xFilter.renderFiltered();
+  }
 }
 function chkKey(){
   const k=document.getElementById('api-key').value.trim();
