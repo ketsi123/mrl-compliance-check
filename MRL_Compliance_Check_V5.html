@@ -891,7 +891,7 @@ tr:hover td{background:#FAFCFF}
           </div>
           <div class="admin-field">
             <label>ชื่อมาตรฐาน <span style="font-size:10px;color:var(--t3);font-weight:400">( ประเทศ / หน่วยงานเจ้าของมาตรฐาน )</span></label>
-            <input class="admin-input" id="admin-std-name" placeholder="เช่น EU Directive, DLD ปศุสัตว์, มกษ.9002-2559" list="country-list">
+            <input class="admin-input" id="admin-std-name" placeholder="เช่น EU Directive, DLD ปศุสัตว์, มกษ.9002-2559" list="country-list" autocomplete="off">
             <datalist id="country-list">
               <option value="EU"><option value="USA"><option value="Japan"><option value="Australia/New Zealand">
               <option value="Canada"><option value="China"><option value="Taiwan"><option value="Korea">
@@ -943,6 +943,7 @@ tr:hover td{background:#FAFCFF}
             <div class="admin-field">
               <label>Segment</label>
               <select class="admin-select" id="admin-sub-seg">
+                <option value="">-- เลือก Segment --</option>
                 <option value="Antibiotic">Antibiotic</option>
                 <option value="Pesticide">Pesticide</option>
                 <option value="Other">Other</option>
@@ -2004,6 +2005,8 @@ const admin={
     ['admin-std-id','admin-std-name','admin-std-note'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.value='';
     });
+    const sel=document.getElementById('admin-std-sel');
+    if(sel)sel.value='';
   },
   autoFillSubInfo(name){
     const sub=wDATA.find(d=>d.name===name);
