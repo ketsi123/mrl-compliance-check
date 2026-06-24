@@ -1093,10 +1093,13 @@ async function gasCall(body){
   try{
     const res = await fetch(url, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(body),
+      redirect:'follow'
     });
-    return await res.json();
+    const text=await res.text();
+    try{return JSON.parse(text);}
+    catch(e){return {error:'parse error: '+text.slice(0,100)};}
   }catch(e){
     console.error('GAS error:', e);
     return {error: e.message};
