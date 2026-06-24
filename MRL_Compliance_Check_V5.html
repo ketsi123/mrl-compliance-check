@@ -2535,6 +2535,7 @@ const xFilter={
     const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
     this.filters[this.col]=allSel?null:[...this.pendingChecked];
     console.log('[xFilter.apply] col='+this.col+' allSel='+allSel+' pendingSize='+this.pendingChecked.size+' allValsSize='+this.allVals.length+' filter='+JSON.stringify(this.filters[this.col]?.slice(0,3)));
+    console.trace('apply called from');
     this._currentQ='';
     this.close();
     this.renderFiltered();
@@ -2664,10 +2665,11 @@ const xFilter={
   },
 
   init(){
+    if(this._inited) return;
+    this._inited=true;
     document.addEventListener('click',(e)=>{
       const dd=document.getElementById('xf-dd');
       if(!dd) return;
-      // ถ้าคลิกใน dd หรือคลิกที่ header column → ไม่ปิด
       if(dd.contains(e.target)) return;
       if(e.target.closest('[data-col]')||e.target.closest('.xf-th')) return;
       this.close();
