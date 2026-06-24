@@ -997,14 +997,14 @@ function openEditModal(sub,std,prod,val){
   document.getElementById('em-val').value=val;
   document.getElementById('edit-modal-label').textContent=sub+' × '+std+' × '+prod;
   const m=document.getElementById('edit-modal');
-  m.style.display='flex';
-  m.style.pointerEvents='auto';
+  m.style.visibility='visible';
+  m.style.opacity='1';
   setTimeout(()=>document.getElementById('em-val').select(),100);
 }
 function closeEditModal(){
   const m=document.getElementById('edit-modal');
-  m.style.display='none';
-  m.style.pointerEvents='none';
+  m.style.visibility='hidden';
+  m.style.opacity='0';
 }
 function saveEditModal(){
   const sub=document.getElementById('em-sub').value.trim();
@@ -1023,7 +1023,7 @@ function saveEditModal(){
   closeEditModal();
   showToast('✅ แก้ไขสำเร็จ: '+sub+' × '+prod,'info','✅');
 }
-
+function swTab(i){
   const tabs=document.querySelectorAll('.tab-btn:not(.tab-home)');
   tabs.forEach((b,j)=>b.classList.toggle('active',j===i));
   document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
@@ -2524,9 +2524,12 @@ function ddr(e){
     <button class="xf-dd-ok" onclick="xFilter.apply()">ตกลง</button>
   </div>
 </div>
+
+</div><!-- /app-shell -->
+
 <!-- ═══ EDIT LIMIT MODAL ═══ -->
-<div id="edit-modal" onclick="if(event.target===this)closeEditModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;pointer-events:none">
-  <div style="background:#fff;border-radius:16px;padding:28px 28px 24px;width:420px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative">
+<div id="edit-modal" onclick="if(event.target===this)closeEditModal()" style="visibility:hidden;opacity:0;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity .15s">
+  <div style="background:#fff;border-radius:16px;padding:28px 28px 24px;width:420px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative" onclick="event.stopPropagation()">
     <div style="font-size:16px;font-weight:700;color:#1E293B;margin-bottom:4px">✏️ แก้ไข Limit</div>
     <div id="edit-modal-label" style="font-size:12px;color:#64748B;margin-bottom:20px"></div>
     <div style="display:flex;flex-direction:column;gap:14px">
@@ -2554,6 +2557,5 @@ function ddr(e){
   </div>
 </div>
 
-</div><!-- /app-shell -->
 </body>
 </html>
