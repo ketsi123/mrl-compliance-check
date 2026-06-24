@@ -1824,6 +1824,7 @@ const admin={
         '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--t3);border-bottom:2px solid var(--bd2);background:#E8EDF5;color:#475569">STANDARD</th>'+
         '<th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--t3);border-bottom:2px solid var(--bd2);background:#E8EDF5;color:#475569">PRODUCT</th>'+
         '<th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:var(--t3);border-bottom:2px solid var(--bd2);background:#E8EDF5;color:#475569">VALUE</th>'+
+        '<th style="padding:8px 6px;width:36px;text-align:center;font-size:11px;font-weight:700;color:var(--t3);border-bottom:2px solid var(--bd2);background:#E8EDF5;color:#475569">แก้</th>'+
         '<th style="padding:8px 6px;width:36px;text-align:center;font-size:11px;font-weight:700;color:var(--t3);border-bottom:2px solid var(--bd2);background:#E8EDF5;color:#475569">ลบ</th>'+
         '</tr></thead><tbody>'+
         rows.slice(0,120).map((r,i)=>{
@@ -1831,12 +1832,15 @@ const admin={
           const et=r.std.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
           const ev=r.val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
           const isND=r.val==='ต้องตรวจไม่พบ';
-          return '<tr style="background:'+(i%2?'var(--sf2)':'var(--sf)')+'" onclick="openEditModal(\''+es+'\',\''+et+'\',\''+r.prod+'\',\''+ev+'\')">'+
+          return '<tr style="background:'+(i%2?'var(--sf2)':'var(--sf)')+'">'+
             '<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:600">'+r.sub+'</td>'+
             '<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--blue)">'+r.std+(wSTD[r.std]?.country?'<span style="color:var(--t3);font-size:10px"> · '+wSTD[r.std].country+'</span>':'')+'</td>'+
             '<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-size:12px">'+r.prod+'</td>'+
             '<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:700;text-align:right;color:'+(isND?'var(--red)':'var(--tx)')+'">'+r.val+'</td>'+
-            '<td style="padding:4px 6px;border-bottom:1px solid var(--bd);text-align:center" onclick="event.stopPropagation()">'+
+            '<td style="padding:4px 6px;border-bottom:1px solid var(--bd);text-align:center">'+
+            '<button onclick="openEditModal(\''+es+'\',\''+et+'\',\''+r.prod+'\',\''+ev+'\')" style="border:none;background:none;color:#2563EB;cursor:pointer;font-size:14px;padding:2px 5px;border-radius:4px;transition:all .12s" onmouseover="this.style.background=\'#EFF6FF\'" onmouseout="this.style.background=\'none\'">✏️</button>'+
+            '</td>'+
+            '<td style="padding:4px 6px;border-bottom:1px solid var(--bd);text-align:center">'+
             '<button onclick="admin.deleteLim(\''+es+'\',\''+et+'\',\''+r.prod+'\')" style="border:none;background:none;color:var(--t3);cursor:pointer;font-size:15px;padding:2px 4px;border-radius:4px;transition:all .12s" onmouseover="this.style.color=\'var(--red)\';this.style.background=\'var(--rl)\'" onmouseout="this.style.color=\'var(--t3)\';this.style.background=\'none\'">✕</button>'+
             '</td></tr>';
         }).join('')+
@@ -2123,6 +2127,8 @@ const xFilter={
         +'<span class="xf-icon">'+mkIcon(col)+'</span></div></th>';
     });
     html+='<th style="padding:8px 6px;width:36px;text-align:center;font-size:11px;font-weight:700;'
+      +'color:var(--t3);border-bottom:2px solid var(--bd2);background:#E8EDF5;color:#475569">แก้</th>'
+      +'<th style="padding:8px 6px;width:36px;text-align:center;font-size:11px;font-weight:700;'
       +'color:var(--t3);border-bottom:2px solid var(--bd2);background:#E8EDF5;color:#475569">ลบ</th>'
       +'</tr></thead><tbody>';
 
@@ -2131,14 +2137,19 @@ const xFilter={
       const et=r.std.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       const ev=r.val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       const isND=r.val==='ต้องตรวจไม่พบ';
-      html+='<tr style="background:'+(i%2?'var(--sf2)':'var(--sf)')+'" '
-        +'onclick="openEditModal(\''+es+'\',\''+et+'\',\''+r.prod+'\',\''+ev+'\')" title="คลิกเพื่อแก้ไข">'
+      html+='<tr style="background:'+(i%2?'var(--sf2)':'var(--sf)')+'">'
         +'<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:600">'+r.sub+'</td>'
         +'<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--blue)">'+r.std+'</td>'
         +'<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-size:12px">'+r.prod+'</td>'
         +'<td style="padding:7px 12px;border-bottom:1px solid var(--bd);font-family:\'IBM Plex Mono\',monospace;'
         +'font-size:11px;font-weight:700;text-align:right;color:'+(isND?'var(--red)':'var(--tx)')+'">'+r.val+'</td>'
-        +'<td style="padding:4px 6px;border-bottom:1px solid var(--bd);text-align:center" onclick="event.stopPropagation()">'
+        +'<td style="padding:4px 6px;border-bottom:1px solid var(--bd);text-align:center">'
+        +'<button onclick="openEditModal(\''+es+'\',\''+et+'\',\''+r.prod+'\',\''+ev+'\')" '
+        +'style="border:none;background:none;color:#2563EB;cursor:pointer;font-size:14px;'
+        +'padding:2px 5px;border-radius:4px;transition:all .12s" '
+        +'onmouseover="this.style.background=\'#EFF6FF\'" '
+        +'onmouseout="this.style.background=\'none\'">✏️</button></td>'
+        +'<td style="padding:4px 6px;border-bottom:1px solid var(--bd);text-align:center">'
         +'<button onclick="admin.deleteLim(\''+es+'\',\''+et+'\',\''+r.prod+'\')" '
         +'style="border:none;background:none;color:var(--t3);cursor:pointer;font-size:15px;'
         +'padding:2px 4px;border-radius:4px;transition:all .12s" '
