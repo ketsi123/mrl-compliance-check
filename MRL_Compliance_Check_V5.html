@@ -1589,8 +1589,11 @@ const t2={
     t2._renderDdListC(subs);
   },
   _applyFilterC(){
-    const visible=t2._subsC.filter(d=>t2._selectedC.has(d.name));
-    t2._fillTbodyC(visible);
+    // แสดงทุกแถวที่อยู่ใน _selectedC
+    t2._subsC.forEach(d=>{
+      const row=document.querySelector(`[data-sub-row="${d.name}"]`);
+      if(row) row.style.display=t2._selectedC.has(d.name)?'':'none';
+    });
     const allCb=document.getElementById('t2c-all-cb');
     if(allCb) allCb.checked=t2._selectedC.size===t2._subsC.length;
   },
@@ -1613,8 +1616,9 @@ const t2={
     const mrl_std=t2.stdC; const mrl_prod=t2.prodC;
     tbody.innerHTML=subs.map((d,i)=>{
       const mrl=d.std_mrls[mrl_std]?.[mrl_prod]||'';
-      return `<tr style="background:${i%2?'var(--sf2)':'var(--sf)'}" data-sub-row="${d.name}">
-        <td style="padding:6px 10px;text-align:center"><input type="checkbox" class="t2c-cb" data-sub="${d.name}" checked style="cursor:pointer;accent-color:var(--blue)"></td>
+      const sel=t2._selectedC.has(d.name);
+      return `<tr style="background:${i%2?'var(--sf2)':'var(--sf)'};display:${sel?'':'none'}" data-sub-row="${d.name}">
+        <td style="padding:6px 10px;text-align:center"><input type="checkbox" class="t2c-cb" data-sub="${d.name}" ${sel?'checked':''} onchange="t2._toggleRowC('${d.name.replace(/'/g,"\\'")}',this.checked)" style="cursor:pointer;accent-color:var(--blue)"></td>
         <td style="padding:6px 12px;font-size:12px;font-weight:600;color:var(--tx)">${d.name}</td>
         <td style="padding:6px 12px;text-align:right;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--t2)">${mrl}</td>
         <td style="padding:4px 8px;text-align:right">
@@ -1629,6 +1633,19 @@ const t2={
         </td>
       </tr>`;
     }).join('');
+  },
+  _toggleRowC(name, show){
+    if(show) t2._selectedC.add(name);
+    else t2._selectedC.delete(name);
+    // แสดง/ซ่อนแถว
+    const row=document.querySelector(`[data-sub-row="${name}"]`);
+    if(row) row.style.display=show?'':'none';
+    // sync dropdown checkbox
+    const ddCb=document.querySelector(`.t2c-filter-cb[data-name="${name}"]`);
+    if(ddCb) ddCb.checked=show;
+    // update header checkbox
+    const allCb=document.getElementById('t2c-all-cb');
+    if(allCb) allCb.checked=t2._selectedC.size===t2._subsC.length;
   },
   _checkAllC(checked){
     t2._selectAllC(checked);
