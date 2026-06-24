@@ -2483,22 +2483,21 @@ const xFilter={
 
   apply(){
     const q=this._currentQ||'';
-    // ถ้า search อยู่ → เอาเฉพาะ visible items เป็น pendingChecked ใหม่
+    console.log('[apply] _currentQ="'+q+'" col='+this.col+' pendingSize='+this.pendingChecked.size);
     if(q){
+      // Excel style: ถ้า search อยู่ → filter เฉพาะที่เห็นใน search (ที่ยัง checked)
       const visible=this.allVals.filter(v=>v.toLowerCase().includes(q.toLowerCase()));
-      // pendingChecked = เฉพาะที่ checked ใน visible list
       const visibleChecked=visible.filter(v=>this.pendingChecked.has(v));
-      // เพิ่ม visible ที่ checked + เก็บ checked นอก visible ไว้ด้วย
-      const outsideChecked=[...this.pendingChecked].filter(v=>!visible.includes(v));
-      this.pendingChecked=new Set([...outsideChecked,...visibleChecked]);
+      this.filters[this.col]=visibleChecked.length>0?visibleChecked:null;
+    } else {
+      // ไม่ได้ search → ดู pendingChecked vs allVals ตามปกติ
+      const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
+      this.filters[this.col]=allSel?null:[...this.pendingChecked];
     }
-    const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
-    this.filters[this.col]=allSel?null:[...this.pendingChecked];
     this._currentQ='';
     this.close();
     this.renderFiltered();
-    const filtered=!allSel&&this.pendingChecked.size>0;
-    if(filtered) showToast('กรอง '+this.col.toUpperCase()+': '+this.pendingChecked.size+' รายการ','info','▼');
+    if(this.filters[this.col]) showToast('กรอง '+this.col.toUpperCase()+': '+this.filters[this.col].length+' รายการ','info','▼');
     setTimeout(()=>{
       const tbl=document.getElementById('admin-preview');
       if(tbl) tbl.scrollIntoView({behavior:'smooth',block:'nearest'});
