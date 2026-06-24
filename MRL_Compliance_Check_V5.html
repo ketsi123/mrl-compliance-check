@@ -2421,6 +2421,14 @@ const xFilter={
     this.filters[this.col]=allSel?null:[...this.pendingChecked];
     this.close();
     this.renderFiltered();
+    // feedback
+    const filtered=!allSel&&this.pendingChecked.size>0;
+    if(filtered) showToast(`กรอง ${this.col.toUpperCase()}: ${this.pendingChecked.size} รายการ`,'info','▼');
+    // scroll to table
+    setTimeout(()=>{
+      const tbl=document.getElementById('admin-preview');
+      if(tbl) tbl.scrollIntoView({behavior:'smooth',block:'nearest'});
+    },100);
   },
 
   sortAZ(){this.sortCol=this.col;this.sortDir=1;this.close();this.renderFiltered();},
