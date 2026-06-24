@@ -1,108 +1,207 @@
 /**
- * MRL Compliance Check — Google Apps Script Web App
- * Deploy: Extensions > Apps Script > Deploy > New Deployment > Web App
- *   Execute as: Me
- *   Who has access: Anyone (หรือ Anyone with Google Account)
+ * MRL Compliance Check — Google Apps Script
+ * Spreadsheet ID: 1-9ugxVpj3CpD_RHKnUvnEgiHotEsxyIPNLkTrE5nkrE
  *
- * ไฟล์ที่ต้องใส่ใน Google Drive:
- *   - MRL_Compliance_Check_V5.html  (ในโฟลเดอร์เดียวกับ Script หรือระบุ FILE_ID)
- *
- * วิธีใช้งาน:
- *   1. เปิด Google Drive > New > More > Google Apps Script
- *   2. วาง Code.gs นี้ลงไป
- *   3. แก้ค่า FILE_NAME หรือ FILE_ID ให้ตรงกับไฟล์ใน Drive
- *   4. Deploy > New Deployment > Web App
- *   5. Copy URL มาแชร์ได้เลย
+ * Sheets ที่ต้องมีใน Spreadsheet:
+ *   - Substances: name | segment | group | aliases
+ *   - Standards:  name | label | group | note | country
+ *   - Limits:     substance | standard | product | value
  */
 
-// ── CONFIG ──────────────────────────────────────────────
-const FILE_NAME = 'MRL_Compliance_Check_V5.html'; // ชื่อไฟล์ใน Drive
-const FILE_ID   = '';  // (ทางเลือก) ถ้ารู้ File ID ใส่ตรงนี้จะเร็วกว่า
-// ────────────────────────────────────────────────────────
+const SS_ID = '1-9ugxVpj3CpD_RHKnUvnEgiHotEsxyIPNLkTrE5nkrE';
+const HTML_FILE = 'MRL_Compliance_Check_V5.html';
 
-/**
- * GET request — serve HTML file from Drive
- */
+// ── doGet: serve HTML ────────────────────────────────────────
 function doGet(e) {
   try {
-    const html = getHtmlContent();
-    return ContentService
-      .createTextOutput(html)
-      .setMimeType(ContentService.MimeType.HTML);
-  } catch (err) {
-    return ContentService
-      .createTextOutput(`<h2>Error</h2><pre>${err.message}</pre>`)
-      .setMimeType(ContentService.MimeType.HTML);
+    const file = DriveApp.getFilesByName(HTML_FILE).next();
+    const html = file.getBlob().getDataAsString('UTF-8');
+    return HtmlService.createHtmlOutput(html)
+      .setTitle('MRL Compliance Check')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  } catch(err) {
+    return HtmlService.createHtmlOutput('<h2>Error</h2><pre>'+err.message+'</pre>');
   }
 }
 
-/**
- * POST request — proxy Anthropic API (เพื่อซ่อน API Key ไว้ฝั่ง server)
- * Body JSON: { apiKey, messages, model, max_tokens }
- */
+// ── doPost: API endpoint ─────────────────────────────────────
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
-    const { apiKey, messages, model, max_tokens, system } = body;
+    const { action } = body;
+    let result;
 
-    if (!apiKey || !messages) {
-      return jsonResponse({ error: 'Missing apiKey or messages' }, 400);
-    }
+    if      (action === 'read')          result = readDatabase();
+    else if (action === 'saveLimit')     result = saveLimit(body);
+    else if (action === 'deleteLimit')   result = deleteLimit(body);
+    else if (action === 'saveStandard')  result = saveStandard(body);
+    else if (action === 'deleteStandard')result = deleteStandard(body);
+    else if (action === 'initSheets')    result = initSheets();
+    else                                  result = { error: 'Unknown action: ' + action };
 
-    const payload = {
-      model: model || 'claude-sonnet-4-6',
-      max_tokens: max_tokens || 4096,
-      messages: messages
+    return jsonOut(result);
+  } catch(err) {
+    return jsonOut({ error: err.message });
+  }
+}
+
+// ── READ: ดึงข้อมูลทั้งหมดจาก Sheet ────────────────────────
+function readDatabase() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+
+  // Substances
+  const subSheet = ss.getSheetByName('Substances');
+  const subRows  = subSheet.getDataRange().getValues();
+  const substances = {};
+  subRows.slice(1).forEach(r => {
+    if (!r[0]) return;
+    const name = r[0].toString().trim();
+    substances[name] = {
+      name, segment: r[1]||'Other', group: r[2]||'Other',
+      aliases: r[3] ? r[3].toString().split(',').map(s=>s.trim()).filter(Boolean) : [],
+      std_mrls: {}
     };
-    if (system) payload.system = system;
+  });
 
-    const response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    });
+  // Standards
+  const stdSheet = ss.getSheetByName('Standards');
+  const stdRows  = stdSheet.getDataRange().getValues();
+  const STD_META = {};
+  stdRows.slice(1).forEach(r => {
+    if (!r[0]) return;
+    const name = r[0].toString().trim();
+    STD_META[name] = {
+      label:   r[1]||name,
+      g:       r[2]||'ต่างประเทศ',
+      note:    r[3]||'',
+      country: r[4]||''
+    };
+  });
 
-    const result = JSON.parse(response.getContentText());
-    return jsonResponse(result, response.getResponseCode());
-
-  } catch (err) {
-    return jsonResponse({ error: err.message }, 500);
-  }
-}
-
-// ── HELPERS ─────────────────────────────────────────────
-
-function getHtmlContent() {
-  let file;
-
-  if (FILE_ID) {
-    file = DriveApp.getFileById(FILE_ID);
-  } else {
-    const files = DriveApp.getFilesByName(FILE_NAME);
-    if (!files.hasNext()) {
-      throw new Error(`ไม่พบไฟล์ชื่อ "${FILE_NAME}" ใน Google Drive`);
+  // Limits
+  const limSheet = ss.getSheetByName('Limits');
+  const limRows  = limSheet.getDataRange().getValues();
+  limRows.slice(1).forEach(r => {
+    const sub  = (r[0]||'').toString().trim();
+    const std  = (r[1]||'').toString().trim();
+    const prod = (r[2]||'').toString().trim();
+    const val  = (r[3]||'').toString().trim();
+    if (!sub || !std || !prod || !val) return;
+    if (!substances[sub]) {
+      substances[sub] = { name:sub, segment:'Other', group:'Other', aliases:[], std_mrls:{} };
     }
-    file = files.next();
-  }
+    if (!substances[sub].std_mrls[std]) substances[sub].std_mrls[std] = {};
+    substances[sub].std_mrls[std][prod] = val;
+  });
 
-  return file.getBlob().getDataAsString('UTF-8');
+  const DATA = Object.values(substances).filter(s => Object.keys(s.std_mrls).length > 0);
+  return { ok: true, DATA, STD_META };
 }
 
-function jsonResponse(data, statusCode) {
-  // GAS ContentService ไม่รองรับ HTTP status code โดยตรง
-  // แต่ client ต้องอ่าน .error field เอง
+// ── SAVE LIMIT ───────────────────────────────────────────────
+function saveLimit({ sub, std, prod, val, seg, grp }) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+
+  // อัปเดต Limits sheet
+  const limSheet = ss.getSheetByName('Limits');
+  const limData  = limSheet.getDataRange().getValues();
+  let found = false;
+  for (let i = 1; i < limData.length; i++) {
+    if (limData[i][0] == sub && limData[i][1] == std && limData[i][2] == prod) {
+      limSheet.getRange(i+1, 4).setValue(val);
+      found = true; break;
+    }
+  }
+  if (!found) limSheet.appendRow([sub, std, prod, val]);
+
+  // อัปเดต Substances sheet (segment/group)
+  if (seg || grp) {
+    const subSheet = ss.getSheetByName('Substances');
+    const subData  = subSheet.getDataRange().getValues();
+    let subFound = false;
+    for (let i = 1; i < subData.length; i++) {
+      if (subData[i][0] == sub) {
+        if (seg) subSheet.getRange(i+1, 2).setValue(seg);
+        if (grp) subSheet.getRange(i+1, 3).setValue(grp);
+        subFound = true; break;
+      }
+    }
+    if (!subFound) subSheet.appendRow([sub, seg||'Other', grp||'Other', '']);
+  }
+
+  return { ok: true, message: 'บันทึกสำเร็จ: '+sub+' × '+std+' × '+prod };
+}
+
+// ── DELETE LIMIT ─────────────────────────────────────────────
+function deleteLimit({ sub, std, prod }) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const limSheet = ss.getSheetByName('Limits');
+  const limData  = limSheet.getDataRange().getValues();
+  for (let i = limData.length - 1; i >= 1; i--) {
+    if (limData[i][0] == sub && limData[i][1] == std && limData[i][2] == prod) {
+      limSheet.deleteRow(i+1);
+      return { ok: true, message: 'ลบสำเร็จ' };
+    }
+  }
+  return { ok: false, message: 'ไม่พบรายการ' };
+}
+
+// ── SAVE STANDARD ────────────────────────────────────────────
+function saveStandard({ name, label, group, note, country }) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const stdSheet = ss.getSheetByName('Standards');
+  const stdData  = stdSheet.getDataRange().getValues();
+  let found = false;
+  for (let i = 1; i < stdData.length; i++) {
+    if (stdData[i][0] == name) {
+      stdSheet.getRange(i+1, 1, 1, 5).setValues([[name, label||name, group||'ต่างประเทศ', note||'', country||'']]);
+      found = true; break;
+    }
+  }
+  if (!found) stdSheet.appendRow([name, label||name, group||'ต่างประเทศ', note||'', country||'']);
+  return { ok: true, message: 'บันทึกมาตรฐานสำเร็จ: '+name };
+}
+
+// ── DELETE STANDARD ──────────────────────────────────────────
+function deleteStandard({ name }) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const stdSheet = ss.getSheetByName('Standards');
+  const stdData  = stdSheet.getDataRange().getValues();
+  for (let i = stdData.length - 1; i >= 1; i--) {
+    if (stdData[i][0] == name) {
+      stdSheet.deleteRow(i+1);
+      return { ok: true };
+    }
+  }
+  return { ok: false, message: 'ไม่พบมาตรฐาน' };
+}
+
+// ── INIT SHEETS: สร้าง header row ────────────────────────────
+function initSheets() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+
+  const setup = [
+    ['Substances', ['name','segment','group','aliases']],
+    ['Standards',  ['name','label','group','note','country']],
+    ['Limits',     ['substance','standard','product','value']]
+  ];
+
+  setup.forEach(([sheetName, headers]) => {
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) sheet = ss.insertSheet(sheetName);
+    const existing = sheet.getRange(1,1,1,headers.length).getValues()[0];
+    if (!existing[0]) {
+      sheet.getRange(1,1,1,headers.length).setValues([headers]);
+      sheet.getRange(1,1,1,headers.length).setFontWeight('bold').setBackground('#E8EDF5');
+    }
+  });
+
+  return { ok: true, message: 'สร้าง Sheets สำเร็จ' };
+}
+
+// ── Helper ───────────────────────────────────────────────────
+function jsonOut(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
-}
-
-// ── OPTIONAL: Version info ───────────────────────────────
-
-function getVersion() {
-  return { version: 'V5', updated: new Date().toISOString() };
 }
