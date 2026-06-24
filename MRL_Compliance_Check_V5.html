@@ -1501,15 +1501,15 @@ const t2={
     buildStds('t2c-stds',null,'t2.ssC',null,p?new Set([p]):null);
   },
   ssC(s){
-    this.stdC=s;
+    t2.stdC=s;
     document.querySelectorAll('#t2c-stds .sc').forEach(c=>c.classList.toggle('sel',c.dataset.s===s));
     if(!s) return;
-    const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][this.prodC]).sort((a,b)=>a.name.localeCompare(b.name));
-    this._subsC=subs;
+    const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][t2.prodC]).sort((a,b)=>a.name.localeCompare(b.name));
+    t2._subsC=subs;
     const area=document.getElementById('t2c-input-area');
     if(!area) return;
     area.style.display='';
-    this._renderTableC(subs);
+    t2._renderTableC(subs);
   },
   _subsC:[],
   _renderTableC(subs){
@@ -1557,7 +1557,7 @@ const t2={
   _fillTbodyC(subs){
     const tbody=document.getElementById('t2c-tbody');
     if(!tbody) return;
-    const mrl_std=this.stdC; const mrl_prod=this.prodC;
+    const mrl_std=t2.stdC; const mrl_prod=t2.prodC;
     tbody.innerHTML=subs.map((d,i)=>{
       const mrl=d.std_mrls[mrl_std]?.[mrl_prod]||'';
       return `<tr style="background:${i%2?'var(--sf2)':'var(--sf)'}" data-sub-row="${d.name}">
@@ -1595,7 +1595,7 @@ const t2={
     </div>`;
   },
   checkC(){
-    if(!this.stdC||!this.prodC){ showToast('เลือกสินค้าและมาตรฐานก่อน','warn','⚠️'); return; }
+    if(!t2.stdC||!t2.prodC){ showToast('เลือกสินค้าและมาตรฐานก่อน','warn','⚠️'); return; }
     const res=document.getElementById('t2c-res');
     if(!res) return;
     const results=[];
@@ -1639,7 +1639,7 @@ const t2={
         <div style="background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:10px;padding:10px 18px;text-align:center">
           <div style="font-size:20px;font-weight:800;color:#DC2626">${failN}</div><div style="font-size:11px;color:#991B1B">FAIL</div>
         </div>
-        <div style="flex:1;display:flex;align-items:center;font-size:13px;color:var(--t2)">${this.prodC} × ${this.stdC}</div>
+        <div style="flex:1;display:flex;align-items:center;font-size:13px;color:var(--t2)">${t2.prodC} × ${t2.stdC}</div>
       </div>
       <div style="border:1.5px solid var(--bd);border-radius:var(--rl2);overflow:hidden">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
