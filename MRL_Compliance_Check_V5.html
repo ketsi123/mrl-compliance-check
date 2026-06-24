@@ -2031,6 +2031,7 @@ const admin={
     if(ist)ist.textContent='พร้อมใช้งานจากข้อมูลที่ฝังใน HTML';
     showToast('🔄 Refresh เรียบร้อย — ฟอร์มถูกล้างแล้ว','info','🔄');
   },
+  clearStdForm(){
     ['admin-std-id','admin-std-name','admin-std-note'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.value='';
     });
