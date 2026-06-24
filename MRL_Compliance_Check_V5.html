@@ -2858,7 +2858,10 @@ function ddr(e){
 </div>
 
 
-<!-- Excel-style filter dropdown -->
+<!-- Excel-style filter dropdown อยู่นอก app-shell -->
+</div><!-- /app-shell -->
+
+<!-- xf-dd ต้องอยู่นอก app-shell เพื่อให้ position:fixed ทำงานถูกต้อง -->
 <div class="xf-dropdown" id="xf-dd">
   <div class="xf-dd-sort">
     <button class="xf-dd-sort-btn" id="xf-sort-az" onclick="xFilter.sortAZ()">↑ เรียง A ถึง Z</button>
@@ -2874,8 +2877,6 @@ function ddr(e){
     <button class="xf-dd-ok" onclick="xFilter.apply()">ตกลง</button>
   </div>
 </div>
-
-</div><!-- /app-shell -->
 
 <!-- ═══ EDIT LIMIT MODAL ═══ -->
 <div id="edit-modal" onclick="if(event.target===this)closeEditModal()" style="visibility:hidden;opacity:0;pointer-events:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity .15s">
