@@ -582,25 +582,16 @@ tr:hover td{background:#FAFCFF}
 .xf-dd-cancel{background:#fff;color:var(--t2);border:1.5px solid #BFDBFE!important}.xf-dd-cancel:hover{background:#EFF6FF}
 .xf-dd-selall{padding:5px 10px;font-size:11px;color:var(--blue);cursor:pointer;font-weight:700;border-bottom:1px solid #DBEAFE;margin-bottom:2px}
 .xf-dd-selall:hover{background:#EFF6FF;border-radius:var(--rs)}
-/* FAB Refresh */
-.fab-refresh{
-  position:fixed;bottom:28px;right:28px;
-  width:52px;height:52px;border-radius:50%;
-  background:linear-gradient(135deg,#0891B2,#0E7490);
-  color:#fff;font-size:22px;border:none;cursor:pointer;
-  box-shadow:0 4px 16px rgba(8,145,178,.45),0 2px 6px rgba(0,0,0,.15);
-  display:none;align-items:center;justify-content:center;
-  transition:transform .15s,box-shadow .15s;z-index:1000;
-}
+.fab-refresh{position:fixed;bottom:28px;right:28px;width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#0891B2,#0E7490);color:#fff;font-size:22px;border:none;
+  cursor:pointer;box-shadow:0 4px 16px rgba(8,145,178,.45);display:none;align-items:center;
+  justify-content:center;transition:transform .15s,box-shadow .15s;z-index:1000;}
 .fab-refresh.show{display:flex}
 .fab-refresh:hover{transform:scale(1.1) rotate(30deg);box-shadow:0 6px 20px rgba(8,145,178,.55)}
 .fab-refresh:active{transform:scale(.93)}
-.fab-tip{
-  position:fixed;bottom:86px;right:16px;
-  background:#0F172A;color:#fff;font-size:11px;font-weight:700;
-  padding:5px 10px;border-radius:6px;white-space:nowrap;
-  opacity:0;pointer-events:none;transition:opacity .15s;z-index:1001;
-}
+.fab-tip{position:fixed;bottom:86px;right:16px;background:#0F172A;color:#fff;font-size:11px;
+  font-weight:700;padding:5px 10px;border-radius:6px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .15s;z-index:1001;}
 .fab-refresh:hover + .fab-tip{opacity:1}
 </style>
 </head>
@@ -901,7 +892,7 @@ tr:hover td{background:#FAFCFF}
           </div>
           <div class="admin-field">
             <label>ชื่อมาตรฐาน <span style="font-size:10px;color:var(--t3);font-weight:400">( ประเทศ / หน่วยงานเจ้าของมาตรฐาน )</span></label>
-            <input class="admin-input" id="admin-std-name" placeholder="เช่น EU Directive, DLD ปศุสัตว์, มกษ.9002-2559" list="country-list" autocomplete="off">
+            <input class="admin-input" id="admin-std-name" autocomplete="off" placeholder="เช่น EU Directive, DLD ปศุสัตว์, มกษ.9002-2559" list="country-list">
             <datalist id="country-list">
               <option value="EU"><option value="USA"><option value="Japan"><option value="Australia/New Zealand">
               <option value="Canada"><option value="China"><option value="Taiwan"><option value="Korea">
@@ -929,7 +920,7 @@ tr:hover td{background:#FAFCFF}
           <div class="admin-row">
             <div class="admin-field">
               <label>สินค้า</label>
-              <input class="admin-input" id="admin-lim-prod" list="admin-prod-list" placeholder="Pork, Egg, Chicken, Shrimp หรือพิมพ์ใหม่" autocomplete="off">
+              <input class="admin-input" id="admin-lim-prod" autocomplete="off" list="admin-prod-list" placeholder="Pork, Egg, Chicken, Shrimp หรือพิมพ์ใหม่">
               <datalist id="admin-prod-list">
                 <option value="Pork"><option value="Egg"><option value="Chicken"><option value="Shrimp">
                 <option value="Poultry"><option value="ตับไก่"><option value="ไข่สด"><option value="ไก่เนื้อ">
@@ -946,7 +937,7 @@ tr:hover td{background:#FAFCFF}
           </div>
           <div class="admin-field">
             <label>ชื่อสาร</label>
-            <input class="admin-input" id="admin-sub-name" list="admin-sub-list" placeholder="พิมพ์ชื่อสาร เช่น Amoxicillin" oninput="admin.autoFillSubInfo(this.value)" autocomplete="off">
+            <input class="admin-input" id="admin-sub-name" autocomplete="off" list="admin-sub-list" placeholder="พิมพ์ชื่อสาร เช่น Amoxicillin" oninput="admin.autoFillSubInfo(this.value)">
             <datalist id="admin-sub-list"></datalist>
           </div>
           <div class="admin-row">
@@ -961,18 +952,18 @@ tr:hover td{background:#FAFCFF}
             </div>
             <div class="admin-field">
               <label>กลุ่มสาร (Group)</label>
-              <input class="admin-input" id="admin-sub-grp" placeholder="เช่น ß-LACTAM, Tetracyclines" list="admin-grp-list" autocomplete="off">
+              <input class="admin-input" id="admin-sub-grp" autocomplete="off" placeholder="เช่น ß-LACTAM, Tetracyclines" list="admin-grp-list">
               <datalist id="admin-grp-list"></datalist>
             </div>
           </div>
           <div class="admin-row">
             <div class="admin-field">
               <label>ค่า Limit</label>
-              <input class="admin-input" id="admin-lim-val" placeholder="40 หรือ ต้องตรวจไม่พบ" autocomplete="off">
+              <input class="admin-input" id="admin-lim-val" autocomplete="off" placeholder="40 หรือ ต้องตรวจไม่พบ">
             </div>
             <div class="admin-field">
               <label>Unit</label>
-              <input class="admin-input" id="admin-lim-unit" placeholder="ug/kg, ppb" autocomplete="off">
+              <input class="admin-input" id="admin-lim-unit" placeholder="ug/kg, ppb">
             </div>
           </div>
           <div class="admin-field">
@@ -1089,32 +1080,23 @@ function saveEditModal(){
   const gasUrl=getGasUrl();
   if(gasUrl) gasCall({action:'saveLimit',sub,std,prod,val}).then(r=>{
     if(r?.ok) showToast('☁️ อัปเดตลง Google Sheets แล้ว','info','☁️');
-    else if(r?.error) console.warn('[GAS] saveLimit error:',r.error);
   });
 }
 // ══════════════════════════════════════════
 // GAS / Google Sheets Integration
 // ══════════════════════════════════════════
-function getGasUrl(){ 
-  return 'https://script.google.com/macros/s/AKfycbzTdt_AmalC_0aPtpSHwLKSxRMVe5wKelM9MJy8mkrfO60NiaWjTR1aY9Q_yvEtDtk7kA/exec';
-}
-function saveGasUrl(){
-  try{ localStorage.setItem('gas_url', getGasUrl()); }catch(e){}
-}
+function getGasUrl(){ return 'https://script.google.com/macros/s/AKfycbzTdt_AmalC_0aPtpSHwLKSxRMVe5wKelM9MJy8mkrfO60NiaWjTR1aY9Q_yvEtDtk7kA/exec'; }
+function saveGasUrl(){ try{ localStorage.setItem('gas_url', getGasUrl()); }catch(e){} }
 async function gasCall(body){
   const url = getGasUrl();
   if(!url) return null;
   try{
     const res = await fetch(url, {
       method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(body),
-      redirect:'follow',
-      mode:'cors'
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
     });
-    const text = await res.text();
-    try{ return JSON.parse(text); }
-    catch(e){ return {error:'parse error: '+text.slice(0,200)}; }
+    return await res.json();
   }catch(e){
     console.error('GAS error:', e);
     return {error: e.message};
@@ -1122,17 +1104,13 @@ async function gasCall(body){
 }
 async function autoSyncFromSheet(){
   const url=getGasUrl();if(!url)return;
-  // แสดง loading indicator เบาๆ ที่ topbar badge
   const badge=document.getElementById('db-ver-badge');
   if(badge){badge._origText=badge.textContent;badge.textContent='⏳ กำลังโหลด...';}
   try{
     const res=await gasCall({action:'read'});
-    if(!res||res.error){
-      if(badge)badge.textContent=badge._origText||'📦 Draft';
-      return; // silent fail — ใช้ embedded DATA แทน
-    }
+    if(!res||res.error){if(badge)badge.textContent=badge._origText||'📦 Draft';return;}
     if(res.DATA&&res.DATA.length>0){
-      wDATA=res.DATA; wSTD=res.STD_META;
+      wDATA=res.DATA;wSTD=res.STD_META;
       admin.updateStats&&admin.updateStats();
       admin.fillSubList&&admin.fillSubList();
       admin.fillGrpList&&admin.fillGrpList();
@@ -1141,29 +1119,21 @@ async function autoSyncFromSheet(){
       t1.render&&t1.render();
       xFilter.renderFiltered&&xFilter.renderFiltered();
       pub.updateBadge&&pub.updateBadge();
-      if(badge)badge.textContent='☁️ '+( pub.getCurrent()?.version!=='0.0.0'?'v'+pub.getCurrent().version:'Synced');
-      console.log('[GAS] auto-sync OK: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน');
+      if(badge)badge.textContent='☁️ '+(pub.getCurrent()?.version!=='0.0.0'?'v'+pub.getCurrent().version:'Synced');
     } else {
-      // Sheet ว่าง — ใช้ embedded DATA แล้วแจ้ง
       if(badge)badge.textContent=badge._origText||'📦 Draft';
-      console.log('[GAS] Sheets ว่าง — ใช้ embedded DATA');
     }
-  }catch(e){
-    if(badge)badge.textContent=badge._origText||'📦 Draft';
-    console.warn('[GAS] auto-sync failed:',e);
-  }
+  }catch(e){if(badge)badge.textContent=badge._origText||'📦 Draft';}
 }
 async function syncFromSheet(){
-  const url=getGasUrl();
-  if(!url){showToast('กรุณาใส่ GAS URL ก่อน','warn','☁️');return;}
   showToast('⏳ กำลังดึงข้อมูลจาก Google Sheets...','info','☁️');
   const res=await gasCall({action:'read'});
   if(!res||res.error){showToast('❌ ดึงข้อมูลไม่ได้: '+(res?.error||'unknown'),'warn','❌');return;}
-  if(!res.DATA||res.DATA.length===0){showToast('⚠️ Sheets ยังว่างอยู่ — ใช้ข้อมูลใน HTML แทน','warn','☁️');return;}
-  wDATA=res.DATA; wSTD=res.STD_META;
+  if(!res.DATA||res.DATA.length===0){showToast('⚠️ Sheets ยังว่างอยู่','warn','☁️');return;}
+  wDATA=res.DATA;wSTD=res.STD_META;
   admin.updateStats();admin.fillSubList();admin.fillGrpList();admin.fillProdList();admin.fillStdSel();
   t1.render();xFilter.renderFiltered();
-  showToast('✅ ซิงค์จาก Google Sheets สำเร็จ: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน','info','✅');
+  showToast('✅ ซิงค์สำเร็จ: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน','info','✅');
 }
 async function initSheets(){
   const res = await gasCall({action:'initSheets'});
@@ -1177,10 +1147,7 @@ function swTab(i){
   document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
   const fab=document.getElementById('fab-refresh');
   if(fab)fab.classList.toggle('show',i===2);
-  // re-render admin table เมื่อ switch มา Admin tab
-  if(i===2&&document.getElementById('admin-app')?.style.display!=='none'){
-    xFilter.renderFiltered();
-  }
+  if(i===2&&document.getElementById('admin-app')?.style.display!=='none') xFilter.renderFiltered();
 }
 function chkKey(){
   const k=document.getElementById('api-key').value.trim();
@@ -1191,7 +1158,6 @@ function chkKey(){
 }
 document.addEventListener('DOMContentLoaded',()=>{
   try{const s=localStorage.getItem('ra_key');if(s){document.getElementById('api-key').value=s;chkKey();}}catch(e){}
-  try{const g=localStorage.getItem('gas_url');if(g){document.getElementById('gas-url').value=g;}}catch(e){}
   // Reset admin form fields เพื่อป้องกัน browser autofill
   ['admin-sub-name','admin-lim-prod','admin-lim-val','admin-sub-grp','admin-lim-unit','admin-std-name','admin-std-id','admin-std-note'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
@@ -1199,8 +1165,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const seg=document.getElementById('admin-sub-seg');if(seg)seg.value='';
   pub.init();
   xFilter.init();
-  // Auto-sync จาก Google Sheets ถ้ามี GAS URL
-  if(getGasUrl()) autoSyncFromSheet();
+  // Auto-sync จาก Google Sheets
+  autoSyncFromSheet();
 });
 window.addEventListener('beforeunload',(e)=>{
   if(draftMgr.isDirty){
@@ -2064,39 +2030,26 @@ const admin={
 
     }
   },
-  refreshForms(){
-    // ล้างฟอร์ม Card 2 (Standard)
-    this.clearStdForm();
-    const grpSel=document.getElementById('admin-std-grp');
-    if(grpSel)grpSel.value='ต่างประเทศ';
-    // ล้างฟอร์ม Card 3 (Limit)
-    ['admin-sub-name','admin-lim-prod','admin-lim-val','admin-sub-grp'].forEach(id=>{
-      const el=document.getElementById(id);if(el)el.value='';
-    });
-    const segSel=document.getElementById('admin-sub-seg');
-    if(segSel)segSel.value='';
-    const ruleSel=document.getElementById('admin-rule-type');
-    if(ruleSel)ruleSel.value='MRL';
-    const cur=document.getElementById('admin-cur-std');
-    if(cur){cur.textContent='ยังไม่ได้ยืนยันมาตรฐาน';cur.style.color='';}
-    // ล้าง search
-    const srch=document.getElementById('admin-srch');
-    if(srch)srch.value='';
-    // re-render ตาราง
-    this.updateStats();
-    xFilter.renderFiltered();
-    const st=document.getElementById('admin-save-status');
-    if(st)st.innerHTML='';
-    const ist=document.getElementById('admin-import-status');
-    if(ist)ist.textContent='พร้อมใช้งานจากข้อมูลที่ฝังใน HTML';
-    showToast('🔄 Refresh เรียบร้อย — ฟอร์มถูกล้างแล้ว','info','🔄');
-  },
   clearStdForm(){
     ['admin-std-id','admin-std-name','admin-std-note'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.value='';
     });
-    const sel=document.getElementById('admin-std-sel');
-    if(sel)sel.value='';
+    const sel=document.getElementById('admin-std-sel');if(sel)sel.value='';
+  },
+  refreshForms(){
+    this.clearStdForm();
+    const grpSel=document.getElementById('admin-std-grp');if(grpSel)grpSel.value='ต่างประเทศ';
+    ['admin-sub-name','admin-lim-prod','admin-lim-val','admin-sub-grp'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.value='';
+    });
+    const segSel=document.getElementById('admin-sub-seg');if(segSel)segSel.value='';
+    const ruleSel=document.getElementById('admin-rule-type');if(ruleSel)ruleSel.value='MRL';
+    const cur=document.getElementById('admin-cur-std');
+    if(cur){cur.textContent='ยังไม่ได้ยืนยันมาตรฐาน';cur.style.color='';}
+    const srch=document.getElementById('admin-srch');if(srch)srch.value='';
+    this.updateStats();xFilter.renderFiltered();
+    const st=document.getElementById('admin-save-status');if(st)st.innerHTML='';
+    showToast('🔄 Refresh เรียบร้อย','info','🔄');
   },
   autoFillSubInfo(name){
     const sub=wDATA.find(d=>d.name===name);
@@ -2139,7 +2092,6 @@ const admin={
     const gasUrl=getGasUrl();
     if(gasUrl) gasCall({action:'saveStandard',name,label:name,group:g,note,country:name}).then(r=>{
       if(r?.ok) showToast('☁️ บันทึกมาตรฐานลง Google Sheets แล้ว','info','☁️');
-      else if(r?.error) console.warn('[GAS] saveStandard error:',r.error);
     });
   },
   saveLim(){
@@ -2206,11 +2158,9 @@ const admin={
     draftMgr.markDirty();
     this.updateStats();this.refreshPreview();this.saveToStorage();
     showToast(`ลบ <strong>${sub}</strong> × ${prod} แล้ว<br><span style="opacity:.8;font-size:11px">${std}</span>`,'warn','🗑️');
-    // GAS sync
     const gasUrl=getGasUrl();
     if(gasUrl) gasCall({action:'deleteLimit',sub,std,prod}).then(r=>{
       if(r?.ok) showToast('☁️ ลบออกจาก Google Sheets แล้ว','info','☁️');
-      else if(r?.error) console.warn('[GAS] deleteLimit error:',r.error);
     });
   },
   fillFormFromRow(sub,std,prod,val){
@@ -2532,9 +2482,7 @@ const xFilter={
   },
 
   apply(){
-    if(this._applying) return;
-    this._applying=true;
-    setTimeout(()=>{this._applying=false;},300);
+    // allSel = pendingChecked ครอบคลุมทุกค่าของ column นั้น (allVals ที่โหลดตอน open)
     const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
     this.filters[this.col]=allSel?null:[...this.pendingChecked];
     this._currentQ='';
@@ -2666,11 +2614,10 @@ const xFilter={
   },
 
   init(){
-    if(this._inited) return;
-    this._inited=true;
     document.addEventListener('click',(e)=>{
       const dd=document.getElementById('xf-dd');
       if(!dd) return;
+      // ถ้าคลิกใน dd หรือคลิกที่ header column → ไม่ปิด
       if(dd.contains(e.target)) return;
       if(e.target.closest('[data-col]')||e.target.closest('.xf-th')) return;
       this.close();
@@ -3037,9 +2984,7 @@ function ddr(e){
   </div>
 </div>
 
-<!-- FAB Refresh (Admin only) -->
 <button class="fab-refresh" id="fab-refresh" onclick="admin.refreshForms()" title="Refresh ฟอร์ม Admin">🔄</button>
 <div class="fab-tip">Refresh ฟอร์ม Admin</div>
-
 </body>
 </html>
