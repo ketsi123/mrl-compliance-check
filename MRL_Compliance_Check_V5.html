@@ -1517,24 +1517,38 @@ const t2={
     const area=document.getElementById('t2c-input-area');
     if(!area) return;
     area.innerHTML=`
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-        <div style="font-size:13px;font-weight:700;color:var(--tx)">📝 กรอกผลการตรวจ</div>
-        <input id="t2c-search" type="text" placeholder="🔍 ค้นหาสาร..." class="admin-input"
-          style="flex:1;min-width:160px;padding:6px 10px;font-size:12px"
-          oninput="t2._filterTableC(this.value)">
-        <button onclick="t2._sortTableC()" style="border:1.5px solid var(--bd);background:#fff;border-radius:var(--rs);padding:6px 12px;font-size:11px;cursor:pointer;color:var(--blue);font-weight:700">A→Z</button>
-        <button onclick="t2._checkAllC(true)" style="border:1.5px solid var(--gm);background:#F0FDF4;border-radius:var(--rs);padding:6px 12px;font-size:11px;cursor:pointer;color:#15803D;font-weight:700">✓ เลือกทั้งหมด</button>
-        <button onclick="t2._checkAllC(false)" style="border:1.5px solid var(--bd);background:var(--sf2);border-radius:var(--rs);padding:6px 12px;font-size:11px;cursor:pointer;color:var(--t2);font-weight:700">✕ ล้าง</button>
-      </div>
-      <div style="border:1.5px solid var(--bd);border-radius:var(--rl2);overflow:hidden;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px">📝 กรอกผลการตรวจ</div>
+      <div style="border:1.5px solid var(--bd);border-radius:var(--rl2);overflow:visible;margin-bottom:12px;position:relative">
         <table style="width:100%;border-collapse:collapse" id="t2c-table">
           <thead>
             <tr style="background:#E8EDF5">
-              <th style="padding:8px 10px;width:36px;text-align:center"><input type="checkbox" id="t2c-all-cb" onchange="t2._checkAllC(this.checked)" checked style="cursor:pointer;accent-color:var(--blue)"></th>
-              <th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#475569;cursor:pointer" onclick="t2._sortTableC()">ชื่อสาร ↕</th>
-              <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#475569;width:140px">เกณฑ์</th>
-              <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#475569;width:140px">ค่าที่พบ</th>
-              <th style="padding:8px 8px;font-size:11px;font-weight:700;color:#475569;width:110px">หน่วย</th>
+              <th style="padding:8px 10px;width:36px;text-align:center;border-bottom:2px solid var(--bd2)">
+                <input type="checkbox" id="t2c-all-cb" onchange="t2._checkAllC(this.checked)" checked style="cursor:pointer;accent-color:var(--blue)">
+              </th>
+              <th style="padding:0;border-bottom:2px solid var(--bd2);position:relative">
+                <div style="display:flex;align-items:center;gap:0">
+                  <span style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;cursor:pointer;flex:1" onclick="t2._sortTableC()" id="t2c-sort-lbl">ชื่อสาร ↕</span>
+                  <div style="position:relative;flex-shrink:0">
+                    <button id="t2c-filter-btn" onclick="t2._toggleFilterC()" style="border:none;border-left:1px solid var(--bd);background:none;padding:8px 10px;cursor:pointer;color:var(--blue);font-size:13px;font-weight:700" title="กรองสาร">▾</button>
+                    <div id="t2c-filter-dd" style="display:none;position:absolute;top:100%;left:auto;right:0;z-index:999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.15);min-width:260px;padding:10px">
+                      <div style="display:flex;gap:6px;margin-bottom:8px">
+                        <button onclick="t2._sortC(true)" style="flex:1;border:1px solid var(--bd);background:#EFF6FF;border-radius:6px;padding:5px;font-size:11px;cursor:pointer;color:#2563EB;font-weight:700">↑ A ถึง Z</button>
+                        <button onclick="t2._sortC(false)" style="flex:1;border:1px solid var(--bd);background:#EFF6FF;border-radius:6px;padding:5px;font-size:11px;cursor:pointer;color:#2563EB;font-weight:700">↓ Z ถึง A</button>
+                      </div>
+                      <input id="t2c-dd-search" type="text" placeholder="ค้นหา..." style="width:100%;padding:6px 10px;border:1.5px solid #BFDBFE;border-radius:6px;font-size:12px;outline:none;margin-bottom:6px" oninput="t2._filterC(this.value)">
+                      <div style="max-height:200px;overflow-y:auto;border:1px solid var(--bd);border-radius:6px" id="t2c-dd-list"></div>
+                      <div style="display:flex;gap:6px;margin-top:8px">
+                        <button onclick="t2._selectAllC(true)" style="flex:1;border:1px solid #BBF7D0;background:#F0FDF4;border-radius:6px;padding:5px;font-size:11px;cursor:pointer;color:#15803D;font-weight:700">✓ ทั้งหมด</button>
+                        <button onclick="t2._selectAllC(false)" style="flex:1;border:1px solid var(--bd);background:var(--sf2);border-radius:6px;padding:5px;font-size:11px;cursor:pointer;color:var(--t2);font-weight:700">✕ ล้าง</button>
+                        <button onclick="t2._closeFilterC()" style="flex:1;border:1px solid #2563EB;background:#2563EB;border-radius:6px;padding:5px;font-size:11px;cursor:pointer;color:#fff;font-weight:700">ตกลง</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </th>
+              <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#475569;width:110px;border-bottom:2px solid var(--bd2)">เกณฑ์</th>
+              <th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;color:#475569;width:140px;border-bottom:2px solid var(--bd2)">ค่าที่พบ</th>
+              <th style="padding:8px 8px;font-size:11px;font-weight:700;color:#475569;width:110px;border-bottom:2px solid var(--bd2)">หน่วย</th>
             </tr>
           </thead>
           <tbody id="t2c-tbody"></tbody>
@@ -1543,17 +1557,55 @@ const t2={
       <button onclick="t2.addRowC()" style="border:1.5px dashed var(--bd2);background:none;border-radius:var(--r);padding:7px 16px;font-size:12px;color:var(--blue);cursor:pointer;width:100%;margin-bottom:10px">+ เพิ่มสารนอก scope</button>
       <button onclick="t2.checkC()" class="abtn rdy" style="width:100%">🔍 ตรวจสอบ</button>
     `;
+    t2._selectedC=new Set(subs.map(d=>d.name));
     this._fillTbodyC(subs);
+    this._renderDdListC(subs);
   },
-  _sortAsc:true,
-  _sortTableC(){
-    this._sortAsc=!this._sortAsc;
-    const sorted=[...this._subsC].sort((a,b)=>this._sortAsc?a.name.localeCompare(b.name):b.name.localeCompare(a.name));
-    this._fillTbodyC(sorted);
+  _selectedC: new Set(),
+  _toggleFilterC(){
+    const dd=document.getElementById('t2c-filter-dd');
+    if(dd) dd.style.display=dd.style.display==='none'?'block':'none';
   },
-  _filterTableC(q){
-    const filtered=this._subsC.filter(d=>d.name.toLowerCase().includes(q.toLowerCase()));
-    this._fillTbodyC(filtered);
+  _closeFilterC(){
+    const dd=document.getElementById('t2c-filter-dd');
+    if(dd) dd.style.display='none';
+  },
+  _renderDdListC(subs){
+    const list=document.getElementById('t2c-dd-list');
+    if(!list) return;
+    list.innerHTML=subs.map(d=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;font-size:12px" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="t2c-filter-cb" data-name="${d.name}" ${t2._selectedC.has(d.name)?'checked':''} onchange="t2._onFilterCbC('${d.name.replace(/'/g,"\\'")}',this.checked)" style="cursor:pointer;accent-color:var(--blue)">
+        <span>${d.name}</span>
+      </div>`).join('');
+  },
+  _onFilterCbC(name,checked){
+    if(checked) t2._selectedC.add(name);
+    else t2._selectedC.delete(name);
+    t2._applyFilterC();
+  },
+  _filterC(q){
+    const subs=t2._subsC.filter(d=>d.name.toLowerCase().includes(q.toLowerCase()));
+    t2._renderDdListC(subs);
+  },
+  _applyFilterC(){
+    const visible=t2._subsC.filter(d=>t2._selectedC.has(d.name));
+    t2._fillTbodyC(visible);
+    const allCb=document.getElementById('t2c-all-cb');
+    if(allCb) allCb.checked=t2._selectedC.size===t2._subsC.length;
+  },
+  _selectAllC(checked){
+    if(checked) t2._subsC.forEach(d=>t2._selectedC.add(d.name));
+    else t2._selectedC.clear();
+    t2._renderDdListC(t2._subsC);
+    t2._applyFilterC();
+  },
+  _sortC(asc){
+    t2._subsC=[...t2._subsC].sort((a,b)=>asc?a.name.localeCompare(b.name):b.name.localeCompare(a.name));
+    const lbl=document.getElementById('t2c-sort-lbl');
+    if(lbl) lbl.textContent='ชื่อสาร '+(asc?'↑':'↓');
+    t2._renderDdListC(t2._subsC);
+    t2._applyFilterC();
   },
   _fillTbodyC(subs){
     const tbody=document.getElementById('t2c-tbody');
@@ -1579,9 +1631,7 @@ const t2={
     }).join('');
   },
   _checkAllC(checked){
-    document.querySelectorAll('.t2c-cb').forEach(cb=>cb.checked=checked);
-    const allCb=document.getElementById('t2c-all-cb');
-    if(allCb) allCb.checked=checked;
+    t2._selectAllC(checked);
   },
   addRowC(){
     const rows=document.getElementById('t2c-rows');
@@ -1600,16 +1650,15 @@ const t2={
     const res=document.getElementById('t2c-res');
     if(!res) return;
     const results=[];
-    // แถวจากตาราง (เฉพาะที่ติ๊ก checkbox)
-    document.querySelectorAll('.t2c-cb:checked').forEach(cb=>{
-      const sub=cb.dataset.sub;
+    // แถวจากตาราง (เฉพาะที่อยู่ใน _selectedC)
+    t2._selectedC.forEach(sub=>{
       const valInp=document.querySelector(`.t2c-val[data-sub="${sub}"]`);
       const val=parseFloat(valInp?.value);
       if(isNaN(val)||!valInp?.value) return;
       const unit=document.querySelector(`select[data-unit="${sub}"]`)?.value||'ppb';
       const valPpb=unit==='ppm'?val*1000:val;
       const item=wDATA.find(d=>d.name===sub);
-      const mrl=item?.std_mrls[this.stdC]?.[this.prodC];
+      const mrl=item?.std_mrls[t2.stdC]?.[t2.prodC];
       if(!mrl) return;
       const mrlNum=mrl==='ND'?0:parseFloat(mrl);
       const pass=mrl==='ND'?valPpb===0:(!isNaN(mrlNum)&&valPpb<=mrlNum);
@@ -1624,7 +1673,7 @@ const t2={
       const unit=row?.querySelector('[data-unit-custom]')?.value||'ppb';
       const valPpb=unit==='ppm'?val*1000:val;
       const item=wDATA.find(d=>d.name===sub);
-      const mrl=item?.std_mrls[this.stdC]?.[this.prodC]||'N/A';
+      const mrl=item?.std_mrls[t2.stdC]?.[t2.prodC]||'N/A';
       const mrlNum=mrl==='ND'?0:parseFloat(mrl);
       const pass=mrl==='N/A'?null:mrl==='ND'?valPpb===0:(!isNaN(mrlNum)&&valPpb<=mrlNum);
       results.push({sub,val:valPpb,mrl,pass});
