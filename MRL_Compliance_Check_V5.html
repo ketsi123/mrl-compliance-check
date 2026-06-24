@@ -1043,14 +1043,16 @@ function openEditModal(sub,std,prod,val){
   document.getElementById('em-val').value=val;
   document.getElementById('edit-modal-label').textContent=sub+' × '+std+' × '+prod;
   const m=document.getElementById('edit-modal');
-  m.style.visibility='visible';
+  m.style.display='flex';
   m.style.opacity='1';
+  m.style.pointerEvents='auto';
   setTimeout(()=>document.getElementById('em-val').select(),100);
 }
 function closeEditModal(){
   const m=document.getElementById('edit-modal');
-  m.style.visibility='hidden';
+  m.style.display='none';
   m.style.opacity='0';
+  m.style.pointerEvents='none';
 }
 function saveEditModal(){
   const sub=document.getElementById('em-sub').value.trim();
@@ -1207,18 +1209,19 @@ const t1={
     if(this.prods.has(p))this.prods.delete(p);else this.prods.add(p);
     document.querySelectorAll('[data-p]').forEach(b=>b.className='pb'+(this.prods.has(b.dataset.p)?' sel-'+b.dataset.p:''));
     const ab=document.getElementById('t1-all-prod');
-    if(ab) ab.className='pb'+(this.prods.size===4?' sel-all':'');
+    const all=['Pork','Egg','Chicken','Poultry','Shrimp'];
+    if(ab) ab.className='pb'+(all.every(x=>this.prods.has(x))?' sel-all':'');
     this.stds.clear();this.allStd=false;this.name='ALL';
     buildStds('t1-stds','t1-all','t1.ts','t1.sa',this.prods);
     this.uClr();this.applySearch();this.render();
   },
   spAll(){
-    const all=['Pork','Egg','Chicken','Shrimp'];
+    const all=['Pork','Egg','Chicken','Poultry','Shrimp'];
     const allSel=all.every(p=>this.prods.has(p));
     if(allSel)this.prods.clear();else all.forEach(p=>this.prods.add(p));
     document.querySelectorAll('[data-p]').forEach(b=>b.className='pb'+(this.prods.has(b.dataset.p)?' sel-'+b.dataset.p:''));
     const ab=document.getElementById('t1-all-prod');
-    if(ab) ab.className='pb'+(this.prods.size===4?' sel-all':'');
+    if(ab) ab.className='pb'+(all.every(p=>this.prods.has(p))?' sel-all':'');
     this.stds.clear();this.allStd=false;this.name='ALL';
     buildStds('t1-stds','t1-all','t1.ts','t1.sa',this.prods);
     this.uClr();this.applySearch();this.render();
@@ -2897,7 +2900,7 @@ function ddr(e){
 </div>
 
 <!-- ═══ EDIT LIMIT MODAL ═══ -->
-<div id="edit-modal" onclick="if(event.target===this)closeEditModal()" style="visibility:hidden;opacity:0;pointer-events:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;transition:opacity .15s">
+<div id="edit-modal" onclick="if(event.target===this)closeEditModal()" style="display:none;opacity:0;pointer-events:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:none;align-items:center;justify-content:center;transition:opacity .15s">
   <div style="background:#fff;border-radius:16px;padding:28px 28px 24px;width:420px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);position:relative" onclick="event.stopPropagation()">
     <div style="font-size:16px;font-weight:700;color:#1E293B;margin-bottom:4px">✏️ แก้ไข Limit</div>
     <div id="edit-modal-label" style="font-size:12px;color:#64748B;margin-bottom:20px"></div>
