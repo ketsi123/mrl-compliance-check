@@ -1067,6 +1067,11 @@ function saveEditModal(){
   draftMgr.setDraft(true);
   closeEditModal();
   showToast('✅ แก้ไขสำเร็จ: '+sub+' × '+prod,'info','✅');
+  // GAS sync
+  const gasUrl=getGasUrl();
+  if(gasUrl) gasCall({action:'saveLimit',sub,std,prod,val}).then(r=>{
+    if(r?.ok) showToast('☁️ อัปเดตลง Google Sheets แล้ว','info','☁️');
+  });
 }
 // ══════════════════════════════════════════
 // GAS / Google Sheets Integration
@@ -1111,41 +1116,6 @@ async function initSheets(){
   if(res?.ok) showToast('✅ สร้าง Sheets สำเร็จ','info','✅');
   else showToast('❌ '+(res?.error||'ไม่สามารถสร้าง Sheets ได้'),'warn','❌');
 }
-
-// Override admin.saveLim เพื่อ sync ไปที่ Sheet ด้วย
-const _origSaveLim = admin.saveLim?.bind(admin);
-if(_origSaveLim){
-  admin.saveLimWithSync = async function(){
-    _origSaveLim();
-    const url = getGasUrl();
-    if(!url) return;
-    const sub  = document.getElementById('admin-sub-name')?.value?.trim();
-    const std  = document.getElementById('admin-cur-std')?.textContent?.trim();
-    const prod = document.getElementById('admin-lim-prod')?.value?.trim();
-    const val  = document.getElementById('admin-lim-val')?.value?.trim();
-    const seg  = document.getElementById('admin-sub-seg')?.value;
-    const grp  = document.getElementById('admin-sub-grp')?.value?.trim();
-    if(!sub||!std||!prod||!val) return;
-    const res = await gasCall({action:'saveLimit', sub, std, prod, val, seg, grp});
-    if(res?.ok) showToast('☁️ บันทึกลง Google Sheets แล้ว','info','☁️');
-    else showToast('⚠️ บันทึก local แล้ว แต่ Sheets error: '+(res?.error||''),'warn','⚠️');
-  };
-}
-
-// Override saveEditModal เพื่อ sync ด้วย
-const _origSaveEditModal = saveEditModal;
-window.saveEditModal = async function(){
-  _origSaveEditModal();
-  const url = getGasUrl();
-  if(!url) return;
-  const sub  = document.getElementById('em-sub')?.value?.trim();
-  const std  = document.getElementById('em-std')?.value?.trim();
-  const prod = document.getElementById('em-prod')?.value?.trim();
-  const val  = document.getElementById('em-val')?.value?.trim();
-  if(!sub||!std||!prod||!val) return;
-  const res = await gasCall({action:'saveLimit', sub, std, prod, val});
-  if(res?.ok) showToast('☁️ อัปเดตลง Google Sheets แล้ว','info','☁️');
-};
 
 function swTab(i){
   const tabs=document.querySelectorAll('.tab-btn:not(.tab-home)');
@@ -1983,6 +1953,11 @@ const admin={
     this.updateStats();this.fillSubList();this.refreshPreview();this.saveToStorage();
     // เก็บ lastSaved ไว้รอ user กดปุ่ม "ดูที่แก้ไข" เอง
     xFilter.lastSaved={sub,std,prod};
+    // GAS sync
+    const gasUrl=getGasUrl();
+    if(gasUrl) gasCall({action:'saveLimit',sub,std,prod,val,seg,grp}).then(r=>{
+      if(r?.ok) showToast('☁️ บันทึกลง Google Sheets แล้ว','info','☁️');
+    });
   },
   deleteLim(sub,std,prod){
     if(!confirm(`ลบ ${sub} × ${std} × ${prod}?`))return;
