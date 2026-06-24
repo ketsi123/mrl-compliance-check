@@ -2335,13 +2335,13 @@ const admin={
 const xFilter={
   col:null,sortCol:null,sortDir:1,
   filters:{sub:null,std:null,prod:null,val:null},
-  pendingChecked:new Set(),allVals:[],_lastCol:null,
+  pendingChecked:new Set(),allVals:[],_lastCol:null,_currentQ:'',
   lastSaved:null, // {sub,std,prod} for auto-scroll
 
   open(col,thEl){
     const dd=document.getElementById('xf-dd');
     if(dd.classList.contains('open')&&this._lastCol===col){this.close();return;}
-    this._lastCol=col;this.col=col;
+    this._lastCol=col;this.col=col;this._currentQ='';
     const rows=this._getRows();
     const vals=[...new Set(rows.map(r=>String(r[col]||'')))].sort((a,b)=>a.localeCompare(b));
     this.allVals=vals;
@@ -2397,36 +2397,41 @@ const xFilter={
         const v=cb.getAttribute('data-xfv');
         if(cb.checked)xFilter.pendingChecked.add(v);
         else xFilter.pendingChecked.delete(v);
-        const allS=xFilter.allVals.every(x=>xFilter.pendingChecked.has(x));
+        // update selall based on currently visible vals
+        const q=xFilter._currentQ||'';
+        const visible=q?xFilter.allVals.filter(x=>x.toLowerCase().includes(q.toLowerCase())):xFilter.allVals;
+        const allS=visible.every(x=>xFilter.pendingChecked.has(x));
         const s2=document.getElementById('xf-selall');
-        if(s2)s2.textContent=(allS?'✓ ':'□ ')+'เลือกทั้งหมด ('+xFilter.allVals.length+')';
+        if(s2)s2.textContent=(allS?'✓ ':'□ ')+'เลือกทั้งหมด ('+visible.length+')';
       };
     });
   },
 
   filterList(q){
+    this._currentQ=q;
     const filtered=this.allVals.filter(v=>v.toLowerCase().includes(q.toLowerCase()));
     this._renderList(filtered);
   },
 
   toggleAll(){
-    const allSel=this.allVals.every(v=>this.pendingChecked.has(v));
-    if(allSel)this.pendingChecked.clear();
-    else this.allVals.forEach(v=>this.pendingChecked.add(v));
-    this._renderList(this.allVals);
+    // Toggle only the currently visible (filtered) list
+    const q=this._currentQ||'';
+    const visible=q?this.allVals.filter(v=>v.toLowerCase().includes(q.toLowerCase())):this.allVals;
+    const allSel=visible.length>0&&visible.every(v=>this.pendingChecked.has(v));
+    if(allSel)visible.forEach(v=>this.pendingChecked.delete(v));
+    else visible.forEach(v=>this.pendingChecked.add(v));
+    this._renderList(visible);
   },
 
   apply(){
-    // allSel = เลือกครบทุกค่าที่เป็นไปได้ทั้งหมด (ไม่ใช่แค่ที่แสดงใน dropdown ปัจจุบัน)
-    const allRows=this._getRows();
-    const allPossible=[...new Set(allRows.map(r=>String(r[this.col]||'')))];
-    const allSel=allPossible.length>0&&allPossible.every(v=>this.pendingChecked.has(v));
+    // allSel = pendingChecked ครอบคลุมทุกค่าของ column นั้น (allVals ที่โหลดตอน open)
+    const allSel=this.allVals.length>0&&this.allVals.every(v=>this.pendingChecked.has(v));
     this.filters[this.col]=allSel?null:[...this.pendingChecked];
-    console.log('[xFilter.apply] col='+this.col+' allSel='+allSel+' filter='+JSON.stringify(this.filters[this.col]));
+    this._currentQ='';
     this.close();
     this.renderFiltered();
     const filtered=!allSel&&this.pendingChecked.size>0;
-    if(filtered) showToast(`กรอง ${this.col.toUpperCase()}: ${this.pendingChecked.size} รายการ`,'info','▼');
+    if(filtered) showToast('กรอง '+this.col.toUpperCase()+': '+this.pendingChecked.size+' รายการ','info','▼');
     setTimeout(()=>{
       const tbl=document.getElementById('admin-preview');
       if(tbl) tbl.scrollIntoView({behavior:'smooth',block:'nearest'});
