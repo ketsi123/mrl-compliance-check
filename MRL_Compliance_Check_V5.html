@@ -718,6 +718,11 @@ tr:hover td{background:#FAFCFF}
         <div class="mc-name">AI detect อัตโนมัติ</div>
         <div class="mc-desc">Upload PDF อย่างเดียว<br>AI วิเคราะห์และเลือก scope เอง</div>
       </div>
+      <div class="mode-card" id="mC" onclick="t2.setMode('C')">
+        <div class="mc-icon">✍️</div>
+        <div class="mc-name">กรอกผล Lab เอง</div>
+        <div class="mc-desc">ไม่ต้องใช้ AI<br>กรอกค่า → ระบบเทียบเกณฑ์ให้</div>
+      </div>
     </div>
 
     <div id="t2-mode-a">
@@ -746,6 +751,36 @@ tr:hover td{background:#FAFCFF}
       </div>
     </div>
 
+    <!-- Mode C: กรอกผล Lab เอง -->
+    <div id="t2-mode-c" style="display:none">
+      <div class="scope-box" style="margin-bottom:16px">
+        <div class="scope-row">
+          <div class="scope-key">สินค้า</div>
+          <div class="prow" style="margin-bottom:0;flex:1">
+            <button class="pb" data-p3="Pork"    onclick="t2.spC('Pork')">🐷 Pork</button>
+            <button class="pb" data-p3="Egg"     onclick="t2.spC('Egg')">🥚 Egg</button>
+            <button class="pb" data-p3="Chicken" onclick="t2.spC('Chicken')">🐔 Chicken</button>
+            <button class="pb" data-p3="Poultry" onclick="t2.spC('Poultry')">🍗 Poultry</button>
+            <button class="pb" data-p3="Shrimp"  onclick="t2.spC('Shrimp')">🍤 Shrimp</button>
+          </div>
+        </div>
+        <div class="scope-row" style="margin-bottom:0">
+          <div class="scope-key">มาตรฐาน</div>
+          <div id="t2c-stds" style="flex:1"><span style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</span></div>
+        </div>
+      </div>
+
+      <!-- ตารางกรอกผล -->
+      <div id="t2c-input-area" style="display:none">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px">📝 กรอกผลการตรวจ</div>
+        <div id="t2c-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        <button onclick="t2.addRowC()" style="border:1.5px dashed var(--bd2);background:none;border-radius:var(--r);padding:8px 16px;font-size:12px;color:var(--blue);cursor:pointer;width:100%">+ เพิ่มสาร</button>
+        <button onclick="t2.checkC()" class="abtn rdy" style="margin-top:14px;width:100%">🔍 ตรวจสอบ</button>
+      </div>
+      <div id="t2c-res"></div>
+    </div>
+
+    <div id="t2-upload-sec">
     <div class="sec-lbl"><div class="sec-num">📄</div><div class="sec-txt">อัปโหลด Lab Report</div></div>
     <div class="uz" id="t2-drop" onclick="document.getElementById('t2-file').click()" ondragenter="dov(event)" ondragover="dov(event)" ondragleave="dlv(event)" ondrop="ddr(event)">
       <div style="font-size:34px;margin-bottom:8px;transition:transform .2s" id="uz-icon">📄</div>
@@ -762,6 +797,7 @@ tr:hover td{background:#FAFCFF}
       <div class="pdf-canvas-wrap"><canvas id="pdf-canvas"></canvas></div>
     </div>
     <button class="abtn nrdy" id="t2-btn" onclick="t2.go()">อัปโหลด PDF ก่อนเพื่อวิเคราะห์</button>
+    </div><!-- /t2-upload-sec -->
     <div id="t2-res"></div>
   </div>
 
@@ -1476,12 +1512,119 @@ const t2={
 
   setMode(m){
     this.mode=m;
-    document.getElementById('mA').classList.toggle('active',m==='A');
-    document.getElementById('mB').classList.toggle('active',m==='B');
-    document.getElementById('t2-mode-a').style.display=m==='A'?'':'none';
-    document.getElementById('t2-mode-b').style.display=m==='B'?'':'none';
+    ['A','B','C'].forEach(x=>{
+      const el=document.getElementById('m'+x);
+      if(el) el.classList.toggle('active',x===m);
+      const sec=document.getElementById('t2-mode-'+x.toLowerCase());
+      if(sec) sec.style.display=x===m?'':'none';
+    });
+    // show/hide upload section
+    const upSec=document.getElementById('t2-upload-sec');
+    if(upSec) upSec.style.display=m==='C'?'none':'';
     if(m==='B'){this.prod=null;this.std=null;this.allStd=false;}
     this.ui();
+  },
+  // ── Mode C functions ──
+  prodC:null, stdC:null,
+  spC(p){
+    this.prodC=p; this.stdC=null;
+    document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb'+(b.dataset.p3===p?' sel-'+p:''));
+    buildStds('t2c-stds',null,'t2.ssC',null,p?new Set([p]):null);
+  },
+  ssC(s){
+    this.stdC=s;
+    document.querySelectorAll('#t2c-stds .sc').forEach(c=>c.classList.toggle('sel',c.dataset.s===s));
+    if(!s) return;
+    const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][this.prodC]);
+    const area=document.getElementById('t2c-input-area');
+    const rows=document.getElementById('t2c-rows');
+    if(!area||!rows) return;
+    rows.innerHTML='';
+    subs.forEach(d=>{
+      rows.innerHTML+=`<div style="display:grid;grid-template-columns:1fr 130px 90px;gap:8px;align-items:center;padding:4px 0">
+        <div style="font-size:12px;font-weight:600;color:var(--tx)">${d.name}</div>
+        <input type="number" placeholder="ค่าที่พบ" data-sub="${d.name}" class="admin-input" style="padding:7px 10px;font-size:12px" step="any" min="0">
+        <select data-unit="${d.name}" class="admin-input" style="padding:7px 8px;font-size:11px">
+          <option value="ppb">ppb (µg/kg)</option>
+          <option value="ppm">ppm (mg/kg)</option>
+        </select>
+      </div>`;
+    });
+    area.style.display='';
+  },
+  addRowC(){
+    const rows=document.getElementById('t2c-rows');
+    if(!rows) return;
+    rows.innerHTML+=`<div style="display:grid;grid-template-columns:1fr 130px 90px 28px;gap:8px;align-items:center;padding:4px 0">
+      <input type="text" placeholder="ชื่อสาร" class="admin-input" data-sub-custom style="padding:7px 10px;font-size:12px" list="admin-sub-list">
+      <input type="number" placeholder="ค่าที่พบ" data-val-custom class="admin-input" style="padding:7px 10px;font-size:12px" step="any" min="0">
+      <select data-unit-custom class="admin-input" style="padding:7px 8px;font-size:11px">
+        <option value="ppb">ppb</option><option value="ppm">ppm</option>
+      </select>
+      <button onclick="this.closest('div').remove()" style="border:none;background:none;color:var(--t3);cursor:pointer;font-size:16px">✕</button>
+    </div>`;
+  },
+  checkC(){
+    if(!this.stdC||!this.prodC){ showToast('เลือกสินค้าและมาตรฐานก่อน','warn','⚠️'); return; }
+    const rows=document.getElementById('t2c-rows');
+    const res=document.getElementById('t2c-res');
+    if(!rows||!res) return;
+    const results=[];
+    rows.querySelectorAll('[data-sub]').forEach(inp=>{
+      const sub=inp.dataset.sub;
+      const val=parseFloat(inp.value);
+      if(isNaN(val)||inp.value==='') return;
+      const unit=rows.querySelector(`[data-unit="${sub}"]`)?.value||'ppb';
+      const valPpb=unit==='ppm'?val*1000:val;
+      const item=wDATA.find(d=>d.name===sub);
+      const mrl=item?.std_mrls[this.stdC]?.[this.prodC];
+      if(!mrl) return;
+      const mrlNum=mrl==='ND'?0:parseFloat(mrl);
+      const pass=mrl==='ND'?valPpb===0:(!isNaN(mrlNum)&&valPpb<=mrlNum);
+      results.push({sub,val:valPpb,mrl,pass});
+    });
+    // แถว custom
+    rows.querySelectorAll('[data-sub-custom]').forEach(inp=>{
+      const sub=inp.value.trim(); if(!sub) return;
+      const valInp=inp.closest('div').querySelector('[data-val-custom]');
+      const val=parseFloat(valInp?.value);
+      if(isNaN(val)) return;
+      const unit=inp.closest('div').querySelector('[data-unit-custom]')?.value||'ppb';
+      const valPpb=unit==='ppm'?val*1000:val;
+      const item=wDATA.find(d=>d.name===sub);
+      const mrl=item?.std_mrls[this.stdC]?.[this.prodC]||'N/A';
+      const mrlNum=mrl==='ND'?0:parseFloat(mrl);
+      const pass=mrl==='N/A'?null:mrl==='ND'?valPpb===0:(!isNaN(mrlNum)&&valPpb<=mrlNum);
+      results.push({sub,val:valPpb,mrl,pass});
+    });
+    if(!results.length){ showToast('กรอกค่าอย่างน้อย 1 รายการ','warn','⚠️'); return; }
+    const passN=results.filter(r=>r.pass===true).length;
+    const failN=results.filter(r=>r.pass===false).length;
+    res.innerHTML=`<div style="margin-top:20px">
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:10px 18px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#15803D">${passN}</div><div style="font-size:11px;color:#166534">PASS</div>
+        </div>
+        <div style="background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:10px;padding:10px 18px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:#DC2626">${failN}</div><div style="font-size:11px;color:#991B1B">FAIL</div>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;font-size:13px;color:var(--t2)">${this.prodC} × ${this.stdC}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:#E8EDF5">
+          <th style="padding:8px 12px;text-align:left;font-weight:700;color:#475569">สาร</th>
+          <th style="padding:8px 12px;text-align:right;font-weight:700;color:#475569">ค่าที่พบ (ppb)</th>
+          <th style="padding:8px 12px;text-align:right;font-weight:700;color:#475569">เกณฑ์ (ppb)</th>
+          <th style="padding:8px 12px;text-align:center;font-weight:700;color:#475569">ผล</th>
+        </tr></thead>
+        <tbody>${results.map((r,i)=>`<tr style="background:${i%2?'var(--sf2)':'var(--sf)'}">
+          <td style="padding:7px 12px;font-weight:600">${r.sub}</td>
+          <td style="padding:7px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700">${r.val.toLocaleString()}</td>
+          <td style="padding:7px 12px;text-align:right;font-family:'IBM Plex Mono',monospace;color:var(--t2)">${r.mrl}</td>
+          <td style="padding:7px 12px;text-align:center"><span style="background:${r.pass===true?'#DCFCE7':r.pass===false?'#FEE2E2':'#F3F4F6'};color:${r.pass===true?'#15803D':r.pass===false?'#DC2626':'#6B7280'};padding:2px 10px;border-radius:20px;font-weight:700;font-size:11px">${r.pass===true?'PASS':r.pass===false?'FAIL':'N/A'}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
   },
   sp(p){
     this.prod=p;this.std=null;this.allStd=false;
