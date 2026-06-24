@@ -864,26 +864,15 @@ tr:hover td{background:#FAFCFF}
         <!-- Card 1: Import/Export -->
         <div class="admin-card">
           <h3>1. โหลดหรือบันทึกฐานข้อมูล <span style="font-size:12px;font-weight:400;color:var(--t3)">(ไม่จำเป็นต้องทำ)</span></h3>
-          <div class="admin-card-sub">Import ไฟล์ Excel ที่มี sheets: Substances, Standards, Limits หรือใช้ข้อมูลที่ฝังใน HTML แล้ว export เมื่อแก้เสร็จ</div>
+          <div class="admin-card-sub">ข้อมูลเชื่อมต่อกับ Google Sheets อัตโนมัติ — กด sync เพื่อดึงข้อมูลล่าสุด</div>
           <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:12px 14px;margin-bottom:12px">
             <div style="font-size:12px;font-weight:700;color:#15803D;margin-bottom:6px">☁️ Google Sheets Database</div>
-            <div class="admin-field" style="margin-bottom:8px">
-              <label style="font-size:10px;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.04em">GAS URL</label>
-              <input class="admin-input" type="text" id="gas-url" placeholder="https://script.google.com/macros/s/..." oninput="saveGasUrl()" style="font-size:11px;font-family:'IBM Plex Mono',monospace">
-            </div>
+            <div style="font-size:11px;color:#166534;margin-bottom:10px">ข้อมูลจะ sync อัตโนมัติทุกครั้งที่เปิดหน้า</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="admin-btn" onclick="syncFromSheet()" style="background:#0D9488;color:#fff;border-color:#0D9488;font-size:12px">☁️ ดึงข้อมูลจาก Sheets</button>
-              <button class="admin-btn sec" onclick="initSheets()" style="font-size:11px">🔧 สร้าง Sheet Headers</button>
             </div>
           </div>
-          <div class="admin-field">
-            <label>Import Excel Database</label>
-            <input class="admin-input" type="file" id="admin-file" accept=".xlsx,.xls,.json" onchange="admin.importFile(event)">
-          </div>
           <div class="admin-actions">
-            <button class="admin-btn grn" onclick="admin.exportExcel()">💾 Export Excel</button>
-            <button class="admin-btn sec" onclick="admin.exportJson()">📄 Export JSON</button>
-            <button class="admin-btn sec" onclick="admin.resetToEmbedded()">↩ ใช้ข้อมูลใน HTML</button>
             <button class="admin-btn sec" onclick="admin.logout()">ออกจาก Admin</button>
           </div>
           <div class="admin-status" id="admin-import-status">พร้อมใช้งานจากข้อมูลที่ฝังใน HTML</div>
@@ -1106,7 +1095,9 @@ function saveEditModal(){
 // ══════════════════════════════════════════
 // GAS / Google Sheets Integration
 // ══════════════════════════════════════════
-function getGasUrl(){ return (document.getElementById('gas-url')?.value||'').trim(); }
+function getGasUrl(){ 
+  return 'https://script.google.com/macros/s/AKfycbzTdt_AmalC_0aPtpSHwLKSxRMVe5wKelM9MJy8mkrfO60NiaWjTR1aY9Q_yvEtDtk7kA/exec';
+}
 function saveGasUrl(){
   try{ localStorage.setItem('gas_url', getGasUrl()); }catch(e){}
 }
