@@ -1082,7 +1082,7 @@ function saveEditModal(){
   admin.updateStats();admin.saveToStorage();
   xFilter.lastSaved={sub,std,prod};
   xFilter.renderFiltered();
-  draftMgr.setDraft(true);
+  draftMgr.markDirty();
   closeEditModal();
   showToast('✅ แก้ไขสำเร็จ: '+sub+' × '+prod,'info','✅');
   // GAS sync
