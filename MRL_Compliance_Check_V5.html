@@ -780,8 +780,37 @@ tr:hover td{background:#FAFCFF}
         </div>
       </div>
 
-      <!-- ตารางกรอกผล -->
-      <div id="t2c-input-area" style="display:none">
+      <!-- Quick Search Bar -->
+      <div style="margin-bottom:14px;position:relative">
+        <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">🔍 ค้นหาสารด่วน — พิมพ์แล้วเลือกเพื่อเพิ่มเข้ารายการ</div>
+        <div style="display:flex;gap:8px;align-items:center;position:relative">
+          <input id="t2c-quick-search" type="text" autocomplete="off"
+            placeholder="พิมพ์ชื่อสาร เช่น DDT, Amoxicillin..."
+            style="flex:1;padding:9px 14px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:13px;outline:none;font-family:inherit"
+            oninput="t2._quickSearch(this.value)"
+            onkeydown="t2._quickSearchKey(event)">
+          <div id="t2c-quick-dd" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);max-height:220px;overflow-y:auto;margin-top:4px"></div>
+        </div>
+      </div>
+      <!-- Quick add list -->
+      <div id="t2c-quick-list" style="display:none;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">📋 รายการที่เพิ่ม — กรอกค่าที่พบแล้วกด ตรวจสอบ</div>
+        <div style="border:1.5px solid var(--bd);border-radius:var(--rl2);overflow:hidden">
+          <table style="width:100%;border-collapse:collapse" id="t2c-quick-table">
+            <thead>
+              <tr style="background:#E8EDF5">
+                <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">ชื่อสาร</th>
+                <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right;width:110px">เกณฑ์</th>
+                <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;width:140px">ค่าที่พบ</th>
+                <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;width:100px">หน่วย</th>
+                <th style="padding:8px 8px;width:32px"></th>
+              </tr>
+            </thead>
+            <tbody id="t2c-quick-tbody"></tbody>
+          </table>
+        </div>
+        <button onclick="t2._checkQuick()" class="abtn rdy" style="margin-top:12px;width:100%">🔍 ตรวจสอบ</button>
+      </div>
         <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px">📝 กรอกผลการตรวจ</div>
         <div id="t2c-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
         <button onclick="t2.addRowC()" style="border:1.5px dashed var(--bd2);background:none;border-radius:var(--r);padding:8px 16px;font-size:12px;color:var(--blue);cursor:pointer;width:100%">+ เพิ่มสาร</button>
@@ -1535,12 +1564,14 @@ const t2={
   // ── Mode C functions ──
   prodC:null, stdC:null,
   spC(p){
-    this.prodC=p; this.stdC=null;
+    this.prodC=p; this.stdC=null; this._quickItems=[];
+    this._renderQuickTable();
     document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb'+(b.dataset.p3===p?' sel-'+p:''));
     buildStds('t2c-stds',null,'t2.ssC',null,p?new Set([p]):null);
   },
   ssC(s){
-    t2.stdC=s;
+    t2.stdC=s; t2._quickItems=[];
+    t2._renderQuickTable();
     document.querySelectorAll('#t2c-stds .sc').forEach(c=>c.classList.toggle('sel',c.dataset.s===s));
     if(!s) return;
     const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][t2.prodC]).sort((a,b)=>a.name.localeCompare(b.name));
@@ -1550,7 +1581,118 @@ const t2={
     area.style.display='';
     t2._renderTableC(subs);
   },
-  _subsC:[],
+  _quickItems:[], // {sub, mrl, found, unit}
+  _quickSearch(q){
+    const dd=document.getElementById('t2c-quick-dd');
+    if(!q){dd.style.display='none';return;}
+    const std=this.stdC; const prod=this.prodC;
+    const results=wDATA.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())).slice(0,10);
+    if(!results.length){dd.style.display='none';return;}
+    dd.innerHTML=results.map(d=>{
+      const mrl=std&&prod&&d.std_mrls?.[std]?.[prod]?d.std_mrls[std][prod]:'—';
+      return `<div onclick="t2._quickAdd('${d.name.replace(/'/g,"\\'")}','${mrl}')"
+        style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center"
+        onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''">
+        <span><strong>${d.name}</strong></span>
+        <span style="font-size:11px;color:var(--t2);margin-left:8px">เกณฑ์: ${mrl}</span>
+      </div>`;
+    }).join('');
+    dd.style.display='';
+  },
+  _quickSearchKey(e){
+    if(e.key==='Escape'){document.getElementById('t2c-quick-dd').style.display='none';}
+  },
+  _quickAdd(name, mrl){
+    document.getElementById('t2c-quick-dd').style.display='none';
+    document.getElementById('t2c-quick-search').value='';
+    // ไม่เพิ่มซ้ำ
+    if(this._quickItems.find(x=>x.sub===name)) return;
+    this._quickItems.push({sub:name, mrl, found:'', unit:'ppb (µg/kg)'});
+    this._renderQuickTable();
+  },
+  _renderQuickTable(){
+    const tbody=document.getElementById('t2c-quick-tbody');
+    const list=document.getElementById('t2c-quick-list');
+    if(!tbody||!list) return;
+    if(!this._quickItems.length){list.style.display='none';return;}
+    list.style.display='';
+    tbody.innerHTML=this._quickItems.map((item,i)=>`
+      <tr style="border-bottom:1px solid var(--bd)">
+        <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}</td>
+        <td style="padding:8px 12px;text-align:right;font-size:13px;color:var(--t2)">${item.mrl}</td>
+        <td style="padding:6px 8px">
+          <input type="number" min="0" step="any" value="${item.found}"
+            style="width:100%;padding:5px 8px;border:1.5px solid var(--bd);border-radius:6px;font-size:13px;text-align:right"
+            oninput="t2._quickItems[${i}].found=this.value">
+        </td>
+        <td style="padding:6px 8px">
+          <select style="width:100%;padding:5px;border:1.5px solid var(--bd);border-radius:6px;font-size:12px"
+            onchange="t2._quickItems[${i}].unit=this.value">
+            <option ${item.unit==='ppb (µg/kg)'?'selected':''}>ppb (µg/kg)</option>
+            <option ${item.unit==='ppm (mg/kg)'?'selected':''}>ppm (mg/kg)</option>
+          </select>
+        </td>
+        <td style="padding:6px 8px;text-align:center">
+          <button onclick="t2._quickRemove(${i})" style="border:none;background:none;color:var(--t3);font-size:16px;cursor:pointer"
+            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--t3)'">✕</button>
+        </td>
+      </tr>`).join('');
+  },
+  _quickRemove(i){
+    this._quickItems.splice(i,1);
+    this._renderQuickTable();
+  },
+  _checkQuick(){
+    if(!this.stdC||!this.prodC){showToast('เลือกสินค้าและมาตรฐานก่อน','warn','⚠️');return;}
+    if(!this._quickItems.length){showToast('เพิ่มสารก่อนค่อยตรวจสอบ','warn','⚠️');return;}
+    const rows=this._quickItems.map(item=>{
+      const found=parseFloat(item.found);
+      const mrlRaw=item.mrl;
+      let status='INCONCLUSIVE';let color='var(--amb)';
+      if(mrlRaw==='ND'||mrlRaw==='Not Detected'){
+        status=(!item.found||found===0)?'PASS':'FAIL';
+        color=status==='PASS'?'var(--green)':'var(--red)';
+      } else if(!isNaN(parseFloat(mrlRaw))&&item.found!==''){
+        status=found<=parseFloat(mrlRaw)?'PASS':'FAIL';
+        color=status==='PASS'?'var(--green)':'var(--red)';
+      }
+      return `<tr style="border-bottom:1px solid var(--bd)">
+        <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}</td>
+        <td style="padding:8px 12px;font-size:13px;color:var(--t2)">${mrlRaw}</td>
+        <td style="padding:8px 12px;font-size:13px;text-align:right">${item.found||'—'} ${item.unit}</td>
+        <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${color}">${status}</span></td>
+      </tr>`;
+    }).join('');
+    const pass=this._quickItems.filter(item=>{
+      const found=parseFloat(item.found);const mrlRaw=item.mrl;
+      if(mrlRaw==='ND'||mrlRaw==='Not Detected')return !item.found||found===0;
+      if(!isNaN(parseFloat(mrlRaw))&&item.found!=='')return found<=parseFloat(mrlRaw);
+      return false;
+    }).length;
+    const total=this._quickItems.length;
+    const allPass=pass===total;
+    document.getElementById('t2c-res').innerHTML=`
+      <div style="margin-top:16px;border:2px solid ${allPass?'var(--green)':'var(--red)'};border-radius:var(--rl2);overflow:hidden">
+        <div style="background:${allPass?'#F0FDF4':'#FEF2F2'};padding:12px 16px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">${allPass?'✅':'❌'}</span>
+          <div>
+            <div style="font-weight:800;font-size:15px;color:${allPass?'var(--green)':'var(--red)'}">
+              ${allPass?'ผ่านทุกมาตรฐาน':'พบการเกินมาตรฐาน'}
+            </div>
+            <div style="font-size:12px;color:var(--t2)">${this.stdC} · ${this.prodC} · ผ่าน ${pass}/${total} รายการ</div>
+          </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:#E8EDF5">
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สาร</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">เกณฑ์</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  },
   _renderTableC(subs){
     const area=document.getElementById('t2c-input-area');
     if(!area) return;
@@ -2366,26 +2508,11 @@ const admin={
     }catch(e){console.warn('localStorage error',e);}
   },
   loadFromStorage(){
-    try{
-      const d=localStorage.getItem('mrl_wdata');
-      const s=localStorage.getItem('mrl_wstd');
-      const at=localStorage.getItem('mrl_saved_at');
-      if(d&&s){
-        wDATA=JSON.parse(d);wSTD=JSON.parse(s);
-        const saved=at?new Date(at).toLocaleString('th-TH'):'—';
-        const note=document.getElementById('admin-storage-note');
-        if(note){
-          note.style.display='';
-          note.innerHTML=`💾 โหลดข้อมูลจาก localStorage (บันทึกเมื่อ ${saved}) &nbsp;
-            <button onclick="admin.clearStorage()" style="border:none;background:none;color:var(--red);cursor:pointer;font-weight:700;text-decoration:underline;font-size:12px">ล้างและใช้ข้อมูล HTML เดิม</button>`;
-        }
-        this.updateStats();this.fillStdSel();this.fillSubList();this.preview();
-      }
-    }catch(e){}
+    // ไม่โหลดจาก localStorage อีกแล้ว — source of truth คือ Google Sheets
+    // เก็บฟังก์ชันไว้เพื่อ compatibility แต่ไม่ทำอะไร
   },
   clearStorage(){
     localStorage.removeItem('mrl_wdata');localStorage.removeItem('mrl_wstd');localStorage.removeItem('mrl_saved_at');
-    this.resetToEmbedded();
     const note=document.getElementById('admin-storage-note');if(note)note.style.display='none';
   },
   resetToEmbedded(){
@@ -2679,10 +2806,15 @@ const xFilter={
     document.addEventListener('click',(e)=>{
       const dd=document.getElementById('xf-dd');
       if(!dd) return;
-      // ถ้าคลิกใน dd หรือคลิกที่ header column → ไม่ปิด
       if(dd.contains(e.target)) return;
       if(e.target.closest('[data-col]')||e.target.closest('.xf-th')) return;
       this.close();
+    });
+    // ปิด quick search dropdown เมื่อคลิกที่อื่น
+    document.addEventListener('click',(e)=>{
+      const dd=document.getElementById('t2c-quick-dd');
+      const inp=document.getElementById('t2c-quick-search');
+      if(dd&&!dd.contains(e.target)&&e.target!==inp) dd.style.display='none';
     });
   }
 };
