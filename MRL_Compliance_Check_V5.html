@@ -1316,19 +1316,20 @@ const t1={
     if(!q){dd.style.display='none';return;}
     const ql=q.toLowerCase();
     const subMatches=wDATA.filter(d=>d.name.toLowerCase().includes(ql)).slice(0,10);
-    const stdMatches=wSTD.filter(s=>(s.name||'').toLowerCase().includes(ql)||(s.label||'').toLowerCase().includes(ql)).slice(0,5);
+    const stdMatches=Object.values(wSTD).filter(s=>(s.label||'').toLowerCase().includes(ql)).slice(0,5);
     if(!subMatches.length&&!stdMatches.length){dd.style.display='none';return;}
     let html='';
     if(subMatches.length){
-      html+=`<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">สารตกค้าง</div>`;
-      html+=subMatches.map(d=>`<div onclick="t1._selectSuggestion('${d.name.replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${d.name}</strong></span><span style="font-size:11px;color:var(--t2)">ค้นหาทุกมาตรฐาน</span></div>`).join('');
+      html+='<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">สารตกค้าง</div>';
+      html+=subMatches.map(d=>`<div class="t1-dd-item" data-name="${d.name.replace(/"/g,'&quot;')}" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${d.name}</strong></span><span style="font-size:11px;color:var(--t2)">ค้นหาทุกมาตรฐาน</span></div>`).join('');
     }
     if(stdMatches.length){
-      html+=`<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">มาตรฐาน</div>`;
-      html+=stdMatches.map(s=>`<div onclick="t1._selectSuggestion('${(s.label||s.name).replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${s.label||s.name}</strong></span><span style="font-size:11px;color:var(--t2)">${s.group||''}</span></div>`).join('');
+      html+='<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">มาตรฐาน</div>';
+      html+=stdMatches.map(s=>`<div class="t1-dd-item" data-name="${(s.label||s.name).replace(/"/g,'&quot;')}" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${s.label||s.name}</strong></span><span style="font-size:11px;color:var(--t2)">${s.group||''}</span></div>`).join('');
     }
     dd.innerHTML=html;
     dd.style.display='';
+    dd.querySelectorAll('.t1-dd-item').forEach(el=>el.addEventListener('click',()=>t1._selectSuggestion(el.dataset.name)));
   },
   _selectSuggestion(name){
     const dd=document.getElementById('t1-q-dd');if(dd)dd.style.display='none';
@@ -3180,24 +3181,19 @@ function ddr(e){
 }
 
 function globalRefresh(){
-  // หา tab ที่ active อยู่ตอนนี้
   const panels=document.querySelectorAll('.panel');
   let activeIdx=0;
   panels.forEach((p,i)=>{if(p.classList.contains('active'))activeIdx=i;});
-
   if(activeIdx===0){
-    // Tab 0: รายการตรวจ — ล้าง search + filter ทั้งหมด
     t1.clearAll();
     showToast('🔄 ล้างรายการตรวจเรียบร้อย','info','🔄');
   } else if(activeIdx===1){
-    // Tab 1: ตรวจสอบ Report — ล้าง quick list + result + search
     t2._clearQuick();
     const res=document.getElementById('t2c-res');if(res)res.innerHTML='';
     const inp=document.getElementById('t2c-quick-search');if(inp)inp.value='';
     const dd=document.getElementById('t2c-quick-dd');if(dd)dd.style.display='none';
     showToast('🔄 ล้างผลตรวจสอบเรียบร้อย','info','🔄');
   } else if(activeIdx===2){
-    // Tab 2: Admin — ล้างฟอร์มทั้งหมด
     admin.refreshForms();
   }
 }
