@@ -1703,15 +1703,21 @@ const t2={
     const mkDD=(id,vals,selSet)=>{
       const active=selSet.size>0;
       return `<div style="position:relative;display:inline-block">
-        <button onclick="t2._toggleResDD('${id}')" style="border:none;background:none;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;color:${active?'var(--blue)':'#475569'};display:flex;align-items:center;gap:4px">
+        <button onclick="t2._openResDD('${id}')" style="border:none;background:none;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;color:${active?'var(--blue)':'#475569'};display:flex;align-items:center;gap:4px">
           ${id==='std'?'มาตรฐาน':'สินค้า'} ${active?'('+selSet.size+')':''} ▾
         </button>
-        <div id="res-dd-${id}" style="display:none;position:absolute;top:100%;left:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);min-width:200px;max-height:220px;overflow-y:auto;padding:6px">
-          ${active?`<button onclick="t2._clearResFilter('${id}')" style="border:none;background:var(--rl);color:var(--red);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;width:100%;margin-bottom:4px">✕ ล้าง filter</button>`:''}
-          ${vals.map(v=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;border-radius:6px;font-size:12px" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''">
-            <input type="checkbox" ${selSet.has(v)?'checked':''} onchange="t2._toggleResFilter('${id}','${v.replace(/'/g,"\\'")}',this.checked)" style="accent-color:var(--blue)">
-            <span>${v.length>28?v.slice(0,26)+'…':v}</span>
-          </label>`).join('')}
+        <div id="res-dd-${id}" style="display:none;position:absolute;top:100%;left:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);min-width:220px;overflow:hidden">
+          <div style="max-height:200px;overflow-y:auto;padding:6px">
+            ${vals.map(v=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;border-radius:6px;font-size:12px" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''">
+              <input type="checkbox" data-res-field="${id}" data-res-val="${v.replace(/"/g,'&quot;')}" ${selSet.has(v)?'checked':''} style="accent-color:var(--blue)">
+              <span>${v.length>28?v.slice(0,26)+'…':v}</span>
+            </label>`).join('')}
+          </div>
+          <div style="display:flex;gap:6px;padding:8px;border-top:1px solid var(--bd)">
+            <button onclick="t2._applyResDD('${id}')" style="flex:1;padding:6px;border:none;background:#2563EB;color:#fff;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">ตกลง</button>
+            <button onclick="t2._cancelResDD('${id}')" style="flex:1;padding:6px;border:1.5px solid var(--bd);background:#fff;color:var(--t2);border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">ยกเลิก</button>
+            ${active?`<button onclick="t2._clearResFilter('${id}')" style="padding:6px 10px;border:none;background:var(--rl);color:var(--red);border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">ล้าง</button>`:''}
+          </div>
         </div>
       </div>`;
     };
@@ -1765,14 +1771,30 @@ const t2={
     },100);
   },
 
-  _toggleResDD(id){
+  _openResDD(id){
     const dd=document.getElementById('res-dd-'+id);
     if(!dd)return;
-    dd.style.display=dd.style.display==='none'?'':'none';
+    const isOpen=dd.style.display!=='none';
+    // ปิดทุก dd ก่อน
+    ['std','prod'].forEach(x=>{const d=document.getElementById('res-dd-'+x);if(d)d.style.display='none';});
+    if(!isOpen) dd.style.display='';
   },
-  _toggleResFilter(field,val,checked){
-    const set=field==='std'?this._resFilterStds:this._resFilterProds;
-    if(checked)set.add(val);else set.delete(val);
+  _applyResDD(id){
+    const dd=document.getElementById('res-dd-'+id);
+    if(!dd)return;
+    const set=id==='std'?this._resFilterStds:this._resFilterProds;
+    set.clear();
+    dd.querySelectorAll('input[type=checkbox]:checked').forEach(cb=>{
+      set.add(cb.getAttribute('data-res-val'));
+    });
+    dd.style.display='none';
+    this._reRenderResTable();
+  },
+  _cancelResDD(id){
+    const dd=document.getElementById('res-dd-'+id);
+    if(dd)dd.style.display='none';
+  },
+  _reRenderResTable(){
     const d=this._resData;
     const pass=d.filter(r=>r.status==='PASS').length;
     const total=d.filter(r=>r.status!=='N/A').length;
@@ -1782,7 +1804,7 @@ const t2={
   },
   _clearResFilter(field){
     if(field==='std')this._resFilterStds.clear();else this._resFilterProds.clear();
-    this._toggleResFilter(field,'',false);
+    this._reRenderResTable();
   },
   _renderTableC(subs){
     const area=document.getElementById('t2c-input-area');
