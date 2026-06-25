@@ -716,22 +716,32 @@ tr:hover td{background:#FAFCFF}
 
   <!-- ═══ TAB 1: ตรวจสอบ Report ═══ -->
   <div class="panel" id="tab1">
-    <div class="sec-lbl" style="margin-bottom:14px"><div class="sec-num" style="background:var(--violet)">🤖</div><div class="sec-txt" style="color:var(--violet)">โหมดการตรวจสอบ</div></div>
-    <div class="mode-row">
-      <div class="mode-card active" id="mA" onclick="t2.setMode('A')">
-        <div class="mc-icon">🎯</div>
-        <div class="mc-name">เลือก Scope เอง</div>
-        <div class="mc-desc">ระบุสินค้า + มาตรฐาน<br>AI ตรวจตาม scope ที่กำหนด</div>
+    <!-- Manual Mode -->
+    <div style="margin-bottom:8px">
+      <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">✏️ Manual Mode</div>
+      <div class="mode-row" style="margin-bottom:16px">
+        <div class="mode-card active" id="mC" onclick="t2.setMode('C')" style="flex:1;max-width:100%">
+          <div class="mc-icon">✍️</div>
+          <div class="mc-name">กรอกผล Lab เอง</div>
+          <div class="mc-desc">ไม่ต้องใช้ AI · พิมพ์ชื่อสาร กรอกค่า → ระบบเทียบเกณฑ์ให้ทันที</div>
+        </div>
       </div>
-      <div class="mode-card" id="mB" onclick="t2.setMode('B')">
-        <div class="mc-icon">🤖</div>
-        <div class="mc-name">AI detect อัตโนมัติ</div>
-        <div class="mc-desc">Upload PDF อย่างเดียว<br>AI วิเคราะห์และเลือก scope เอง</div>
-      </div>
-      <div class="mode-card" id="mC" onclick="t2.setMode('C')">
-        <div class="mc-icon">✍️</div>
-        <div class="mc-name">กรอกผล Lab เอง</div>
-        <div class="mc-desc">ไม่ต้องใช้ AI<br>กรอกค่า → ระบบเทียบเกณฑ์ให้</div>
+    </div>
+
+    <!-- AI Mode -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🤖 AI Mode <span style="font-weight:400;color:var(--t3);text-transform:none">(ต้องใช้ API Key)</span></div>
+      <div class="mode-row">
+        <div class="mode-card" id="mA" onclick="t2.setMode('A')">
+          <div class="mc-icon">🎯</div>
+          <div class="mc-name">เลือก Scope เอง</div>
+          <div class="mc-desc">ระบุสินค้า + มาตรฐาน<br>AI ตรวจตาม scope ที่กำหนด</div>
+        </div>
+        <div class="mode-card" id="mB" onclick="t2.setMode('B')">
+          <div class="mc-icon">🤖</div>
+          <div class="mc-name">AI detect อัตโนมัติ</div>
+          <div class="mc-desc">Upload PDF อย่างเดียว<br>AI วิเคราะห์และเลือก scope เอง</div>
+        </div>
       </div>
     </div>
 
@@ -1194,6 +1204,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   xFilter.init();
   // Auto-sync จาก Google Sheets
   autoSyncFromSheet();
+  // Default mode C
+  setTimeout(()=>t2.setMode('C'),0);
 });
 window.addEventListener('beforeunload',(e)=>{
   if(draftMgr.isDirty){
@@ -1538,7 +1550,7 @@ const t1={
 
 // ════ TAB 2 REPORT ════
 const t2={
-  mode:'A',prod:null,std:null,allStd:false,pdfText:'',pdfName:'',
+  mode:'C',prod:null,std:null,allStd:false,pdfText:'',pdfName:'',
 
   setMode(m){
     this.mode=m;
@@ -1983,6 +1995,8 @@ const t2={
     this.ui();
   },
   ui(){
+    // ถ้าอยู่ใน mode C ไม่ต้องแสดง upload/btn section
+    if(this.mode==='C') return;
     const hasPdf=!!this.pdfText;
     const ready=this.mode==='B'?hasPdf:(!!this.prod&&hasPdf);
     const btn=document.getElementById('t2-btn');
