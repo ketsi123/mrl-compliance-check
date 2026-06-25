@@ -745,25 +745,19 @@ tr:hover td{background:#FAFCFF}
       </div>
     </div>
 
-    <div id="t2-mode-a">
-      <div class="scope-box">
-        <div class="scope-row">
-          <div class="scope-key">สินค้า</div>
-          <div class="prow" style="margin-bottom:0;flex:1">
-            <button class="pb" data-p2="Pork"    onclick="t2.sp('Pork')">🐷 Pork</button>
-            <button class="pb" data-p2="Egg"     onclick="t2.sp('Egg')">🥚 Egg</button>
-            <button class="pb" data-p2="Chicken" onclick="t2.sp('Chicken')">🐔 Chicken</button>
-            <button class="pb" data-p2="Poultry" onclick="t2.sp('Poultry')">🍗 Poultry</button>
-            <button class="pb" data-p2="Shrimp"  onclick="t2.sp('Shrimp')">🍤 Shrimp</button>
-            <button class="pb" id="t2-clr" style="display:none;padding:8px 12px;font-size:12px" onclick="t2.clr()">✕</button>
-          </div>
-        </div>
-        <div class="scope-row" style="margin-bottom:0">
-          <div class="scope-key">มาตรฐาน</div>
-          <div id="t2-stds" style="flex:1"><span style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</span></div>
-        </div>
-        <div class="sprev" id="t2-prev">🤖 AI จะ detect สินค้าและมาตรฐานจาก Report อัตโนมัติ</div>
+    <div id="t2-mode-a" style="display:none">
+      <div class="sec-lbl"><div class="sec-num">1</div><div class="sec-txt">เลือกสินค้า</div></div>
+      <div class="prow">
+        <button class="pb" data-p2="Pork"    onclick="t2.sp('Pork')">🐷 Pork</button>
+        <button class="pb" data-p2="Egg"     onclick="t2.sp('Egg')">🥚 Egg</button>
+        <button class="pb" data-p2="Chicken" onclick="t2.sp('Chicken')">🐔 Chicken</button>
+        <button class="pb" data-p2="Poultry" onclick="t2.sp('Poultry')">🍗 Poultry</button>
+        <button class="pb" data-p2="Shrimp"  onclick="t2.sp('Shrimp')">🍤 Shrimp</button>
+        <button class="pb" id="t2a-all-prod" onclick="t2.spAll()" style="font-weight:800">✦ ALL</button>
       </div>
+      <div class="sec-lbl"><div class="sec-num">2</div><div class="sec-txt">เลือกมาตรฐาน</div></div>
+      <div id="t2-stds" style="margin-bottom:16px"><span style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</span></div>
+      <div class="sprev" id="t2-prev">🤖 AI จะ detect สินค้าและมาตรฐานจาก Report อัตโนมัติ</div>
     </div>
     <div id="t2-mode-b" style="display:none">
       <div style="background:var(--bl);border:1.5px solid var(--bm);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--blue)">
@@ -1971,14 +1965,14 @@ const t2={
   sp(p){
     this.prod=p;this.std=null;this.allStd=false;
     document.querySelectorAll('[data-p2]').forEach(b=>b.className='pb'+(b.dataset.p2===p?' sel-'+p:''));
-    const cl=document.getElementById('t2-clr');if(cl)cl.style.display='';
+    const ab=document.getElementById('t2a-all-prod');if(ab)ab.className='pb';
     buildStds('t2-stds','t2-all','t2.ss','t2.sa',p?new Set([p]):null);
     this.ui();
   },
-  clr(){
-    this.prod=null;this.std=null;this.allStd=false;
+  spAll(){
+    this.prod=null;this.std=null;this.allStd=true;
     document.querySelectorAll('[data-p2]').forEach(b=>b.className='pb');
-    const cl=document.getElementById('t2-clr');if(cl)cl.style.display='none';
+    const ab=document.getElementById('t2a-all-prod');if(ab)ab.className='pb sel-all';
     buildStds('t2-stds','t2-all','t2.ss','t2.sa',null);
     this.ui();
   },
