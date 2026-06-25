@@ -807,13 +807,8 @@ tr:hover td{background:#FAFCFF}
         <button onclick="t2._checkQuick()" class="abtn rdy" style="margin-top:12px;width:100%">🔍 ตรวจสอบ</button>
       </div>
 
-      <!-- ตารางกรอกผล (full list) -->
-      <div id="t2c-input-area" style="display:block">
-        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px">📝 กรอกผลการตรวจ (ทุกสารใน scope)</div>
-        <div id="t2c-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
-        <button onclick="t2.addRowC()" style="border:1.5px dashed var(--bd2);background:none;border-radius:var(--r);padding:8px 16px;font-size:12px;color:var(--blue);cursor:pointer;width:100%">+ เพิ่มสาร</button>
-        <button onclick="t2.checkC()" class="abtn rdy" style="margin-top:14px;width:100%">🔍 ตรวจสอบ (ทั้งหมด)</button>
-      </div>
+      <!-- ตารางกรอกผล (full list) ถูกแทนที่ด้วย quick search -->
+      <div id="t2c-input-area" style="display:none"></div>
       <div id="t2c-res"></div>
     </div>
 
@@ -1653,65 +1648,60 @@ const t2={
   _checkQuick(){
     if(!this._quickItems.length){showToast('เพิ่มสารก่อนค่อยตรวจสอบ','warn','⚠️');return;}
     const std=this.stdC; const prod=this.prodC;
+    let passCount=0; let totalCount=0;
     const rows=this._quickItems.map(item=>{
       const found=parseFloat(item.found);
-      // ถ้าไม่ได้เลือก std → หาทุกมาตรฐานที่มีสารนี้
       const subData=wDATA.find(d=>d.name===item.sub);
-      let results=[];
+      let pairs=[];
       if(std&&prod){
         const mrlRaw=subData?.std_mrls?.[std]?.[prod]||'—';
-        results=[{std,prod,mrlRaw}];
+        pairs=[{std,prod,mrlRaw}];
       } else {
-        // วิ่งหาทุก std×prod ที่มีสารนี้
         if(subData){
           Object.entries(subData.std_mrls||{}).forEach(([s,prods])=>{
             Object.entries(prods).forEach(([p,v])=>{
-              if(!prod||p===prod) results.push({std:s,prod:p,mrlRaw:v});
+              if(!prod||p===prod) pairs.push({std:s,prod:p,mrlRaw:String(v)});
             });
           });
         }
-        if(!results.length) results=[{std:'—',prod:'—',mrlRaw:'—'}];
+        if(!pairs.length) pairs=[{std:'ไม่พบในฐานข้อมูล',prod:'—',mrlRaw:'—'}];
       }
-      return results.map(r=>{
-        let status='N/A';let color='var(--t3)';
+      return pairs.map(r=>{
+        let status='N/A'; let color='var(--t3)';
         if(r.mrlRaw!=='—'&&item.found!==''){
+          totalCount++;
           if(r.mrlRaw==='ND'||r.mrlRaw==='Not Detected'){
             status=(!item.found||found===0)?'PASS':'FAIL';
           } else if(!isNaN(parseFloat(r.mrlRaw))){
             status=found<=parseFloat(r.mrlRaw)?'PASS':'FAIL';
           }
-          color=status==='PASS'?'var(--green)':'var(--red)';
+          if(status==='PASS'){color='var(--green)';passCount++;}
+          else if(status==='FAIL')color='var(--red)';
         }
-        return `<tr style="border-bottom:1px solid var(--bd)">
+        return `<tr style="border-bottom:1px solid var(--bd);background:${status==='FAIL'?'#FEF2F2':''}">
           <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}</td>
           <td style="padding:8px 12px;font-size:12px;color:var(--blue)">${r.std}</td>
           <td style="padding:8px 12px;font-size:12px;color:var(--t2)">${r.prod}</td>
           <td style="padding:8px 12px;font-size:13px;color:var(--t2);text-align:right">${r.mrlRaw}</td>
-          <td style="padding:8px 12px;font-size:13px;text-align:right">${item.found||'—'}</td>
+          <td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600">${item.found||'—'}</td>
           <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${color}">${status}</span></td>
         </tr>`;
       }).join('');
     }).join('');
-    const allRows=this._quickItems.flatMap(item=>{
+    const allPass=totalCount>0&&passCount===totalCount;
+    const failItems=this._quickItems.filter(item=>{
       const found=parseFloat(item.found);
       const subData=wDATA.find(d=>d.name===item.sub);
-      const allMrls=[];
-      if(std&&prod){
-        allMrls.push(subData?.std_mrls?.[std]?.[prod]||'—');
-      } else {
-        Object.values(subData?.std_mrls||{}).forEach(prods=>Object.values(prods).forEach(v=>allMrls.push(v)));
-      }
-      return allMrls.map(mrlRaw=>{
-        if(mrlRaw==='—'||item.found==='')return null;
-        if(mrlRaw==='ND'||mrlRaw==='Not Detected')return (!item.found||found===0);
-        if(!isNaN(parseFloat(mrlRaw)))return found<=parseFloat(mrlRaw);
-        return null;
-      }).filter(x=>x!==null);
+      const pairs=[];
+      if(std&&prod){const mrlRaw=subData?.std_mrls?.[std]?.[prod]||'—';pairs.push({std,mrlRaw});}
+      else if(subData){Object.entries(subData.std_mrls||{}).forEach(([s,prods])=>Object.entries(prods).forEach(([p,v])=>pairs.push({std:s,mrlRaw:String(v)})));}
+      return pairs.some(r=>{
+        if(r.mrlRaw==='—'||item.found==='')return false;
+        if(r.mrlRaw==='ND'||r.mrlRaw==='Not Detected')return !(!item.found||found===0);
+        return !isNaN(parseFloat(r.mrlRaw))&&found>parseFloat(r.mrlRaw);
+      });
     });
-    const pass=allRows.filter(Boolean).length;
-    const total=allRows.length;
-    const allPass=total>0&&pass===total;
-    const titleRow=`<tr style="background:#E8EDF5"><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สาร</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">มาตรฐาน</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สินค้า</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">เกณฑ์</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th></tr>`;
+    const failMsg=failItems.length?`เกินมาตรฐาน: ${failItems.map(x=>x.sub).join(', ')}`:'';
     document.getElementById('t2c-res').innerHTML=`
       <div style="margin-top:16px;border:2px solid ${allPass?'var(--green)':'var(--red)'};border-radius:var(--rl2);overflow:hidden">
         <div style="background:${allPass?'#F0FDF4':'#FEF2F2'};padding:12px 16px;display:flex;align-items:center;gap:10px">
@@ -1720,10 +1710,20 @@ const t2={
             <div style="font-weight:800;font-size:15px;color:${allPass?'var(--green)':'var(--red)'}">
               ${allPass?'ผ่านทุกมาตรฐาน':'พบการเกินมาตรฐาน'}
             </div>
-            <div style="font-size:12px;color:var(--t2)">ผ่าน ${pass}/${total} รายการ${std?' · '+std:''}${prod?' · '+prod:''}</div>
+            <div style="font-size:12px;color:var(--t2)">ผ่าน ${passCount}/${totalCount} รายการ${failMsg?' · '+failMsg:''}</div>
           </div>
         </div>
-        <table style="width:100%;border-collapse:collapse"><thead>${titleRow}</thead><tbody>${rows}</tbody></table>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:#E8EDF5">
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สาร</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">มาตรฐาน</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สินค้า</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">เกณฑ์</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th>
+            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
       </div>`;
   },
   _renderTableC(subs){
