@@ -1068,8 +1068,11 @@ function saveEditModal(){
   if(!val){showToast('กรุณากรอกค่า MRL','warn','⚠️');return;}
   const item=wDATA.find(d=>d.name===sub);
   if(!item){showToast('ไม่พบสาร '+sub,'warn','⚠️');return;}
+  const prev=item.std_mrls?.[std]?.[prod]||'';
   if(!item.std_mrls[std])item.std_mrls[std]={};
   item.std_mrls[std][prod]=val;
+  // Audit log
+  admin.addAuditEntry('update',{sub,std,prod,val,prev});
   admin.updateStats();admin.saveToStorage();
   xFilter.lastSaved={sub,std,prod};
   xFilter.renderFiltered();
@@ -1077,15 +1080,14 @@ function saveEditModal(){
   closeEditModal();
   showToast('✅ แก้ไขสำเร็จ: '+sub+' × '+prod,'info','✅');
   // GAS sync
-  const gasUrl=getGasUrl();
-  if(gasUrl) gasCall({action:'saveLimit',sub,std,prod,val}).then(r=>{
+  gasCall({action:'saveLimit',sub,std,prod,val}).then(r=>{
     if(r?.ok) showToast('☁️ อัปเดตลง Google Sheets แล้ว','info','☁️');
   });
 }
 // ══════════════════════════════════════════
 // GAS / Google Sheets Integration
 // ══════════════════════════════════════════
-function getGasUrl(){ return 'https://script.google.com/macros/s/AKfycbxT3toNEC03ahc-R3L6QUOoKPr118-XtlMY57gbOeZ-srWgiFdvpsGlgC1qdSUP_jdziQ/exec'; }
+function getGasUrl(){ return 'https://script.google.com/macros/s/AKfycbzKXwi-ekxYX4RKHaVmbbVOqsy1ibiYDyKvsJ6eZeb5Ykjn0ww45UWU3x2IA7S5zmvbwQ/exec'; }
 function saveGasUrl(){ try{ localStorage.setItem('gas_url', getGasUrl()); }catch(e){} }
 async function gasCall(body){
   const url = getGasUrl();
@@ -2282,10 +2284,13 @@ const admin={
     // Push to Google Sheets
     gasCall({
       action:'saveAuditLog',
-      type,
-      sub:data.sub||'',std:data.std||'',prod:data.prod||'',val:data.val||'',
+      auditAction:type,
+      sub:data.sub||'',
+      std:data.std||'',
+      prod:data.prod||'',
+      val:data.val||'',
       ts:new Date().toISOString()
-    }).catch(e=>console.warn('audit push failed:',e));
+    });
   },
 
   async loadAuditFromSheets(){
