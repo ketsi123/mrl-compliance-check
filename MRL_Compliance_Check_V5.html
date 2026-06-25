@@ -899,7 +899,14 @@ tr:hover td{background:#FAFCFF}
           <div class="admin-card-sub">เลือกมาตรฐานเดิมหรือสร้างใหม่ แล้วไปกรอกค่า Limit ในขั้นตอนถัดไป</div>
           <div class="admin-field">
             <label>มาตรฐาน</label>
-            <select class="admin-select" id="admin-std-sel" onchange="admin.pickStd()"></select>
+            <div style="position:relative">
+              <input class="admin-input" id="admin-std-sel-inp" autocomplete="off"
+                placeholder="-- สร้างมาตรฐานใหม่ --"
+                oninput="admin.filterStdDd(this.value)"
+                onfocus="admin.filterStdDd(this.value)"
+                onkeydown="if(event.key==='Escape'){document.getElementById('admin-std-dd').style.display='none';}">
+              <div id="admin-std-dd" style="display:none;position:absolute;left:0;right:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:8px;box-shadow:0 8px 24px rgba(37,99,235,.18);max-height:240px;overflow-y:auto;margin-top:3px"></div>
+            </div>
           </div>
           <div class="admin-row">
             <div class="admin-field">
@@ -1203,6 +1210,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     const dd=document.getElementById('t1-q-dd');
     const inp=document.getElementById('t1-q');
     if(dd&&inp&&!inp.contains(e.target)&&!dd.contains(e.target)){dd.style.display='none';}
+    // Click-outside ปิด admin std dropdown
+    const sdd=document.getElementById('admin-std-dd');
+    const sinp=document.getElementById('admin-std-sel-inp');
+    if(sdd&&sinp&&!sinp.contains(e.target)&&!sdd.contains(e.target)){sdd.style.display='none';}
   });
 });
 window.addEventListener('beforeunload',(e)=>{
@@ -2312,10 +2323,49 @@ const admin={
     document.getElementById('ac-lim').textContent=lim;
   },
   fillStdSel(){
-    const sel=document.getElementById('admin-std-sel');
-    if(!sel)return;
-    sel.innerHTML='<option value="">-- สร้างมาตรฐานใหม่ --</option>'+
-      Object.keys(wSTD).map(s=>`<option value="${s}">${s}</option>`).join('');
+    // legacy select (ไม่มีแล้ว) — ใช้ filterStdDd แทน
+    this.filterStdDd('');
+  },
+  filterStdDd(q){
+    const dd=document.getElementById('admin-std-dd');
+    if(!dd)return;
+    const ql=(q||'').toLowerCase();
+    const keys=Object.keys(wSTD).filter(s=>!ql||s.toLowerCase().includes(ql));
+    let html='<div class="admin-std-dd-item" data-val="" style="padding:9px 14px;cursor:pointer;font-size:13px;color:var(--t3);border-bottom:1px solid #F1F5F9">-- สร้างมาตรฐานใหม่ --</div>';
+    html+=keys.map(s=>`<div class="admin-std-dd-item" data-val="${s.replace(/"/g,'&quot;')}" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9">${s}</div>`).join('');
+    dd.innerHTML=html;
+    dd.querySelectorAll('.admin-std-dd-item').forEach(el=>{
+      el.addEventListener('mouseover',()=>el.style.background='#EFF6FF');
+      el.addEventListener('mouseout',()=>el.style.background='');
+      el.addEventListener('click',()=>{
+        const v=el.dataset.val;
+        const inp=document.getElementById('admin-std-sel-inp');
+        if(inp)inp.value=v||'';
+        dd.style.display='none';
+        admin._pickStdVal(v);
+      });
+    });
+    dd.style.display=(keys.length||!ql)?'':'none';
+  },
+  _pickStdVal(val){
+    if(!val){
+      // สร้างใหม่ — clear ฟอร์ม
+      ['admin-std-name','admin-std-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      const cur=document.getElementById('admin-cur-std');
+      if(cur){cur.textContent='ยังไม่ได้ยืนยันมาตรฐาน';cur.style.color='';}
+      return;
+    }
+    const m=wSTD[val];
+    const nameEl=document.getElementById('admin-std-name');
+    if(nameEl)nameEl.value=val;
+    if(m){
+      const grpSel=document.getElementById('admin-std-grp');
+      if(grpSel)grpSel.value=m.g||'ต่างประเทศ';
+      const noteEl=document.getElementById('admin-std-note');
+      if(noteEl)noteEl.value=m.note||'';
+      const cur=document.getElementById('admin-cur-std');
+      if(cur){cur.textContent=val;cur.style.color='var(--green)';}
+    }
   },
   fillSubList(){
     const dl=document.getElementById('admin-sub-list');
@@ -2337,23 +2387,13 @@ const admin={
     dl.innerHTML=all.map(p=>`<option value="${p}">`).join('');
   },
   pickStd(){
-    const sel=document.getElementById('admin-std-sel').value;
-    if(!sel)return;
-    const m=wSTD[sel];
-    document.getElementById('admin-std-name').value=sel;
-    if(m){
-      const grpSel=document.getElementById('admin-std-grp');
-      if(grpSel)grpSel.value=m.g||'ต่างประเทศ';
-      const noteEl=document.getElementById('admin-std-note');
-      if(noteEl)noteEl.value=m.note||'';
-
-    }
+    // legacy — ใช้ _pickStdVal แทนแล้ว
   },
   clearStdForm(){
-    ['admin-std-id','admin-std-name','admin-std-note'].forEach(id=>{
+    ['admin-std-id','admin-std-name','admin-std-note','admin-std-sel-inp'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.value='';
     });
-    const sel=document.getElementById('admin-std-sel');if(sel)sel.value='';
+    const dd=document.getElementById('admin-std-dd');if(dd)dd.style.display='none';
   },
   refreshForms(){
     this.clearStdForm();
