@@ -1656,6 +1656,12 @@ const t2={
     if(inp)inp.value='';
     const dd=document.getElementById('t2c-quick-dd');
     if(dd)dd.style.display='none';
+    // reset product/standard filter
+    this.prodC=null;this.stdC=null;
+    document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb');
+    const ab=document.getElementById('t2c-all-prod');if(ab)ab.className='pb';
+    const stds=document.getElementById('t2c-stds');
+    if(stds)stds.innerHTML='<span style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</span>';
   },
   _quickRemove(i){
     this._quickItems.splice(i,1);
