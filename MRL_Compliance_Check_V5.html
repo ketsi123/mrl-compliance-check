@@ -1087,7 +1087,7 @@ function saveEditModal(){
 // ══════════════════════════════════════════
 // GAS / Google Sheets Integration
 // ══════════════════════════════════════════
-function getGasUrl(){ return 'https://script.google.com/macros/s/AKfycbzKXwi-ekxYX4RKHaVmbbVOqsy1ibiYDyKvsJ6eZeb5Ykjn0ww45UWU3x2IA7S5zmvbwQ/exec'; }
+function getGasUrl(){ return 'https://script.google.com/macros/s/AKfycby0Xlb_GjXHiJgR17EGb-v5NdLBttB6_P7czw4ygbKLLoemRtsqvqtQoCWtRQ8TgRYMNw/exec'; }
 function saveGasUrl(){ try{ localStorage.setItem('gas_url', getGasUrl()); }catch(e){} }
 async function gasCall(body){
   const url = getGasUrl();
@@ -2289,6 +2289,7 @@ const admin={
       std:data.std||'',
       prod:data.prod||'',
       val:data.val||'',
+      prev:data.prev||'',
       ts:new Date().toISOString()
     });
   },
@@ -2302,7 +2303,7 @@ const admin={
       .filter(r=>r.ts)
       .map(r=>({
         type:r.action||'other',
-        data:{sub:r.sub,std:r.std,prod:r.prod,val:r.val},
+        data:{sub:r.sub,std:r.std,prod:r.prod,val:r.val,prev:r.prev||''},
         time:new Date(r.ts).toLocaleTimeString('th-TH'),
         ts:new Date(r.ts).getTime(),
         snapshot:null,
