@@ -1642,6 +1642,15 @@ const t2={
         </td>
       </tr>`).join('');
   },
+  _clearQuick(){
+    this._quickItems=[];
+    this._renderQuickTable();
+    document.getElementById('t2c-res').innerHTML='';
+    const inp=document.getElementById('t2c-quick-search');
+    if(inp)inp.value='';
+    const dd=document.getElementById('t2c-quick-dd');
+    if(dd)dd.style.display='none';
+  },
   _quickRemove(i){
     this._quickItems.splice(i,1);
     this._renderQuickTable();
@@ -1725,7 +1734,8 @@ const t2={
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
-      </div>`;
+      </div>
+      <button onclick="t2._clearQuick()" style="margin-top:10px;width:100%;padding:10px;border:1.5px solid var(--bd);border-radius:var(--r);background:#fff;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer">🔄 ล้างและทดสอบใหม่</button>`;
   },
   _renderTableC(subs){
     const area=document.getElementById('t2c-input-area');
