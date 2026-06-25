@@ -1642,6 +1642,7 @@ const t2={
     const dd=document.getElementById('t2c-quick-dd');
     if(dd)dd.style.display='none';
     // reset product/standard filter
+    this._resFilterStds=new Set();this._resFilterProds=new Set();
     this.prodsC=new Set();this.stdC=null;
     document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb');
     const ab=document.getElementById('t2c-all-prod');if(ab)ab.className='pb';
@@ -1689,22 +1690,31 @@ const t2={
     this._renderResTable(allResRows,allPass,passCount,totalCount,failMsg);
   },
 
-  _resData:[],
-  _resFilterStd:null,
-  _resFilterProd:null,
+  _resFilterStds:new Set(),
+  _resFilterProds:new Set(),
 
   _renderResTable(data,allPass,passCount,totalCount,failMsg){
     const filtered=data.filter(r=>
-      (!this._resFilterStd||r.std===this._resFilterStd)&&
-      (!this._resFilterProd||r.prod===this._resFilterProd)
+      (!this._resFilterStds.size||this._resFilterStds.has(r.std))&&
+      (!this._resFilterProds.size||this._resFilterProds.has(r.prod))
     );
     const stdList=[...new Set(data.map(r=>r.std))].sort();
     const prodList=[...new Set(data.map(r=>r.prod))].sort();
-    const mkSel=(field,vals,cur,fn)=>`<select onchange="${fn}(this.value)"
-      style="font-size:10px;font-weight:700;color:${cur?'var(--blue)':'#475569'};border:none;background:none;cursor:pointer;max-width:120px">
-      <option value="">${field}${cur?' ▼':' ▾'}</option>
-      ${vals.map(v=>`<option value="${v}" ${cur===v?'selected':''}>${v.length>20?v.slice(0,18)+'…':v}</option>`).join('')}
-    </select>`;
+    const mkDD=(id,vals,selSet)=>{
+      const active=selSet.size>0;
+      return `<div style="position:relative;display:inline-block">
+        <button onclick="t2._toggleResDD('${id}')" style="border:none;background:none;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;color:${active?'var(--blue)':'#475569'};display:flex;align-items:center;gap:4px">
+          ${id==='std'?'มาตรฐาน':'สินค้า'} ${active?'('+selSet.size+')':''} ▾
+        </button>
+        <div id="res-dd-${id}" style="display:none;position:absolute;top:100%;left:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);min-width:200px;max-height:220px;overflow-y:auto;padding:6px">
+          ${active?`<button onclick="t2._clearResFilter('${id}')" style="border:none;background:var(--rl);color:var(--red);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;width:100%;margin-bottom:4px">✕ ล้าง filter</button>`:''}
+          ${vals.map(v=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;border-radius:6px;font-size:12px" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''">
+            <input type="checkbox" ${selSet.has(v)?'checked':''} onchange="t2._toggleResFilter('${id}','${v.replace(/'/g,"\\'")}',this.checked)" style="accent-color:var(--blue)">
+            <span>${v.length>28?v.slice(0,26)+'…':v}</span>
+          </label>`).join('')}
+        </div>
+      </div>`;
+    };
     const rows=filtered.map(r=>`<tr style="border-bottom:1px solid var(--bd);background:${r.status==='FAIL'?'#FEF2F2':''}">
       <td style="padding:8px 12px;font-size:13px;font-weight:600">${r.sub}</td>
       <td style="padding:8px 12px;font-size:12px;color:var(--blue)">${r.std}</td>
@@ -1732,26 +1742,37 @@ const t2={
         <table style="width:100%;border-collapse:collapse">
           <thead><tr style="background:#E8EDF5">
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สาร</th>
-            <th style="padding:4px 8px;font-size:11px;font-weight:700;color:#475569;text-align:left">
-              ${mkSel('มาตรฐาน',stdList,this._resFilterStd,'t2._filterRes("std",')}
-            </th>
-            <th style="padding:4px 8px;font-size:11px;font-weight:700;color:#475569;text-align:left">
-              ${mkSel('สินค้า',prodList,this._resFilterProd,'t2._filterRes("prod",')}
-            </th>
+            <th style="padding:2px 4px">${mkDD('std',stdList,this._resFilterStds)}</th>
+            <th style="padding:2px 4px">${mkDD('prod',prodList,this._resFilterProds)}</th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">เกณฑ์</th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
-        ${filtered.length<data.length?`<div style="padding:8px 12px;font-size:11px;color:var(--t2);background:#F8FAFC">แสดง ${filtered.length} / ${data.length} รายการ <button onclick="t2._resetResFilter()" style="border:none;background:none;color:var(--blue);cursor:pointer;font-size:11px;font-weight:700">ล้าง filter</button></div>`:''}
+        ${filtered.length<data.length?`<div style="padding:8px 12px;font-size:11px;color:var(--t2);background:#F8FAFC">แสดง ${filtered.length} / ${data.length} รายการ</div>`:''}
       </div>
       <button onclick="t2._clearQuick()" style="margin-top:10px;width:100%;padding:10px;border:1.5px solid var(--bd);border-radius:var(--r);background:#fff;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer">🔄 ล้างและทดสอบใหม่</button>`;
+    // ปิด dropdown เมื่อคลิกที่อื่น
+    setTimeout(()=>{
+      document.addEventListener('click',function closeDD(e){
+        ['std','prod'].forEach(id=>{
+          const dd=document.getElementById('res-dd-'+id);
+          const btn=dd?.previousElementSibling;
+          if(dd&&!dd.contains(e.target)&&e.target!==btn) dd.style.display='none';
+        });
+      },{once:false,capture:false});
+    },100);
   },
 
-  _filterRes(field,val){
-    if(field==='std')this._resFilterStd=val||null;
-    else this._resFilterProd=val||null;
+  _toggleResDD(id){
+    const dd=document.getElementById('res-dd-'+id);
+    if(!dd)return;
+    dd.style.display=dd.style.display==='none'?'':'none';
+  },
+  _toggleResFilter(field,val,checked){
+    const set=field==='std'?this._resFilterStds:this._resFilterProds;
+    if(checked)set.add(val);else set.delete(val);
     const d=this._resData;
     const pass=d.filter(r=>r.status==='PASS').length;
     const total=d.filter(r=>r.status!=='N/A').length;
@@ -1759,9 +1780,9 @@ const t2={
     const failItems=[...new Set(d.filter(r=>r.status==='FAIL').map(r=>r.sub))];
     this._renderResTable(d,allPass,pass,total,failItems.length?'เกินมาตรฐาน: '+failItems.join(', '):'');
   },
-  _resetResFilter(){
-    this._resFilterStd=null;this._resFilterProd=null;
-    this._filterRes('std','');
+  _clearResFilter(field){
+    if(field==='std')this._resFilterStds.clear();else this._resFilterProds.clear();
+    this._toggleResFilter(field,'',false);
   },
   _renderTableC(subs){
     const area=document.getElementById('t2c-input-area');
