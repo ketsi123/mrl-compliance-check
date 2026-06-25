@@ -1316,20 +1316,19 @@ const t1={
     if(!q){dd.style.display='none';return;}
     const ql=q.toLowerCase();
     const subMatches=wDATA.filter(d=>d.name.toLowerCase().includes(ql)).slice(0,10);
-    const stdMatches=Object.values(wSTD).filter(s=>(s.label||'').toLowerCase().includes(ql)).slice(0,5);
+    const stdMatches=wSTD.filter(s=>(s.name||'').toLowerCase().includes(ql)||(s.label||'').toLowerCase().includes(ql)).slice(0,5);
     if(!subMatches.length&&!stdMatches.length){dd.style.display='none';return;}
     let html='';
     if(subMatches.length){
-      html+='<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">สารตกค้าง</div>';
-      html+=subMatches.map(d=>`<div class="t1-dd-item" data-name="${d.name.replace(/"/g,'&quot;')}" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${d.name}</strong></span><span style="font-size:11px;color:var(--t2)">ค้นหาทุกมาตรฐาน</span></div>`).join('');
+      html+=`<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">สารตกค้าง</div>`;
+      html+=subMatches.map(d=>`<div onclick="t1._selectSuggestion('${d.name.replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${d.name}</strong></span><span style="font-size:11px;color:var(--t2)">ค้นหาทุกมาตรฐาน</span></div>`).join('');
     }
     if(stdMatches.length){
-      html+='<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">มาตรฐาน</div>';
-      html+=stdMatches.map(s=>`<div class="t1-dd-item" data-name="${(s.label||s.name).replace(/"/g,'&quot;')}" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${s.label||s.name}</strong></span><span style="font-size:11px;color:var(--t2)">${s.group||''}</span></div>`).join('');
+      html+=`<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">มาตรฐาน</div>`;
+      html+=stdMatches.map(s=>`<div onclick="t1._selectSuggestion('${(s.label||s.name).replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${s.label||s.name}</strong></span><span style="font-size:11px;color:var(--t2)">${s.group||''}</span></div>`).join('');
     }
     dd.innerHTML=html;
     dd.style.display='';
-    dd.querySelectorAll('.t1-dd-item').forEach(el=>el.addEventListener('click',()=>t1._selectSuggestion(el.dataset.name)));
   },
   _selectSuggestion(name){
     const dd=document.getElementById('t1-q-dd');if(dd)dd.style.display='none';
@@ -1576,6 +1575,14 @@ const t2={
   mode:'C',prod:null,std:null,allStd:false,pdfText:'',pdfName:'',
 
   setMode(m){
+    // AI Mode (A/B) ต้องมี API Key
+    if(m==='A'||m==='B'){
+      const k=document.getElementById('api-key').value.trim();
+      if(!k.startsWith('sk-ant-')){
+        apikeyPopupOpen(m);
+        return;
+      }
+    }
     this.mode=m;
     ['A','B','C'].forEach(x=>{
       const el=document.getElementById('m'+x);
@@ -3181,22 +3188,74 @@ function ddr(e){
 }
 
 function globalRefresh(){
+  // หา tab ที่ active อยู่ตอนนี้
   const panels=document.querySelectorAll('.panel');
   let activeIdx=0;
   panels.forEach((p,i)=>{if(p.classList.contains('active'))activeIdx=i;});
+
   if(activeIdx===0){
+    // Tab 0: รายการตรวจ — ล้าง search + filter ทั้งหมด
     t1.clearAll();
     showToast('🔄 ล้างรายการตรวจเรียบร้อย','info','🔄');
   } else if(activeIdx===1){
+    // Tab 1: ตรวจสอบ Report — ล้าง quick list + result + search
     t2._clearQuick();
     const res=document.getElementById('t2c-res');if(res)res.innerHTML='';
     const inp=document.getElementById('t2c-quick-search');if(inp)inp.value='';
     const dd=document.getElementById('t2c-quick-dd');if(dd)dd.style.display='none';
     showToast('🔄 ล้างผลตรวจสอบเรียบร้อย','info','🔄');
   } else if(activeIdx===2){
+    // Tab 2: Admin — ล้างฟอร์มทั้งหมด
     admin.refreshForms();
   }
 }
+
+// ── API Key Popup ──
+let _apikeyPendingMode=null;
+function apikeyPopupOpen(pendingMode){
+  _apikeyPendingMode=pendingMode;
+  const overlay=document.getElementById('apikey-overlay');
+  overlay.style.display='flex';
+  const inp=document.getElementById('apikey-popup-inp');
+  inp.value='';
+  document.getElementById('apikey-popup-err').style.display='none';
+  document.getElementById('apikey-popup-btn').style.opacity='.5';
+  document.getElementById('apikey-popup-btn').style.pointerEvents='none';
+  setTimeout(()=>inp.focus(),100);
+}
+function apikeyPopupClose(){
+  document.getElementById('apikey-overlay').style.display='none';
+  _apikeyPendingMode=null;
+}
+function apikeyPopupCheck(){
+  const v=document.getElementById('apikey-popup-inp').value.trim();
+  const ok=v.startsWith('sk-ant-');
+  const err=document.getElementById('apikey-popup-err');
+  const btn=document.getElementById('apikey-popup-btn');
+  err.style.display=(v.length>5&&!ok)?'':'none';
+  btn.style.opacity=ok?'1':'.5';
+  btn.style.pointerEvents=ok?'auto':'none';
+}
+function apikeyPopupSave(){
+  const v=document.getElementById('apikey-popup-inp').value.trim();
+  if(!v.startsWith('sk-ant-'))return;
+  // บันทึกลง topbar input + localStorage
+  const topInp=document.getElementById('api-key');
+  if(topInp){topInp.value=v;chkKey();}
+  try{localStorage.setItem('ra_key',v);}catch(e){}
+  document.getElementById('apikey-overlay').style.display='none';
+  // ดำเนินการ setMode ต่อ
+  if(_apikeyPendingMode){
+    t2.setMode(_apikeyPendingMode);
+    _apikeyPendingMode=null;
+  }
+  showToast('🔑 บันทึก API Key แล้ว','info','🔑');
+}
+// ปิด popup เมื่อคลิก overlay
+document.addEventListener('click',(e)=>{
+  const overlay=document.getElementById('apikey-overlay');
+  if(overlay&&e.target===overlay) apikeyPopupClose();
+});
 </script>
 <div class="toast-overlay" id="toast-overlay" onclick="admin.closeToast()">
   <div class="toast" id="toast" onclick="event.stopPropagation()">
@@ -3354,5 +3413,24 @@ function globalRefresh(){
 
 <button class="fab-refresh" id="fab-refresh" onclick="globalRefresh()" title="ล้างและ Refresh ทุกอย่าง">🔄</button>
 <div class="fab-tip">ล้างทุกอย่าง / Refresh</div>
+<!-- API Key Popup Modal -->
+<div id="apikey-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.25);font-family:var(--font)">
+    <div style="font-size:32px;text-align:center;margin-bottom:12px">🔑</div>
+    <h3 style="margin:0 0 6px;font-size:17px;font-weight:800;text-align:center">ต้องใช้ Anthropic API Key</h3>
+    <p style="margin:0 0 20px;font-size:13px;color:var(--t2);text-align:center;line-height:1.6">AI Mode ต้องใช้ API Key ของคุณเอง<br>ข้อมูลไม่ถูกส่งออกนอกจาก Anthropic API</p>
+    <input id="apikey-popup-inp" type="password" placeholder="sk-ant-api03-..."
+      style="width:100%;padding:10px 14px;border:2px solid var(--bd);border-radius:var(--r);font-size:14px;font-family:var(--font);box-sizing:border-box;outline:none;margin-bottom:8px"
+      oninput="apikeyPopupCheck()"
+      onkeydown="if(event.key==='Enter')apikeyPopupSave()">
+    <div id="apikey-popup-err" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none">รูปแบบ API Key ไม่ถูกต้อง (ต้องขึ้นต้นด้วย sk-ant-)</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="apikeyPopupClose()" style="flex:1;padding:10px;border:1.5px solid var(--bd);border-radius:var(--r);background:#fff;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;color:var(--t2)">ยกเลิก</button>
+      <button id="apikey-popup-btn" onclick="apikeyPopupSave()" style="flex:2;padding:10px;border:none;border-radius:var(--r);background:#2563EB;color:#fff;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;opacity:.5;pointer-events:none">บันทึกและใช้งาน</button>
+    </div>
+    <p style="margin:12px 0 0;font-size:11px;color:var(--t3);text-align:center">API Key จะถูกบันทึกไว้ใน browser นี้เครื่องนี้เท่านั้น</p>
+  </div>
+</div>
+
 </body>
 </html>
