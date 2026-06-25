@@ -767,15 +767,6 @@ tr:hover td{background:#FAFCFF}
 
     <!-- Mode C: กรอกผล Lab เอง -->
     <div id="t2-mode-c" style="display:none">
-      <div class="prow">
-        <button class="pb" data-p3="Pork"    onclick="t2.spC('Pork')">🐷 Pork</button>
-        <button class="pb" data-p3="Egg"     onclick="t2.spC('Egg')">🥚 Egg</button>
-        <button class="pb" data-p3="Chicken" onclick="t2.spC('Chicken')">🐔 Chicken</button>
-        <button class="pb" data-p3="Poultry" onclick="t2.spC('Poultry')">🍗 Poultry</button>
-        <button class="pb" data-p3="Shrimp"  onclick="t2.spC('Shrimp')">🍤 Shrimp</button>
-        <button class="pb" id="t2c-all-prod" onclick="t2.spCAll()" style="font-weight:800">✦ ALL</button>
-      </div>
-      <div id="t2c-stds" style="margin-bottom:16px"></div>
 
       <!-- Quick Search Bar -->
       <div style="margin-bottom:14px;position:relative">
@@ -1663,27 +1654,21 @@ const t2={
   },
   _checkQuick(){
     if(!this._quickItems.length){showToast('เพิ่มสารก่อนค่อยตรวจสอบ','warn','⚠️');return;}
-    const std=this.stdC; const prod=this.prodsC.size===1?[...this.prodsC][0]:null;
-    let passCount=0; let totalCount=0;
-    const rows=this._quickItems.map(item=>{
+    this._resFilterStd=null;this._resFilterProd=null;
+    let passCount=0;let totalCount=0;
+    const allResRows=[];
+    this._quickItems.forEach(item=>{
       const found=parseFloat(item.found);
       const subData=wDATA.find(d=>d.name===item.sub);
       let pairs=[];
-      if(std&&prod){
-        const mrlRaw=subData?.std_mrls?.[std]?.[prod]||'—';
-        pairs=[{std,prod,mrlRaw}];
-      } else {
-        if(subData){
-          Object.entries(subData.std_mrls||{}).forEach(([s,prods])=>{
-            Object.entries(prods).forEach(([p,v])=>{
-              if(!prod||p===prod) pairs.push({std:s,prod:p,mrlRaw:String(v)});
-            });
-          });
-        }
-        if(!pairs.length) pairs=[{std:'ไม่พบในฐานข้อมูล',prod:'—',mrlRaw:'—'}];
+      if(subData){
+        Object.entries(subData.std_mrls||{}).forEach(([s,prods])=>{
+          Object.entries(prods).forEach(([p,v])=>pairs.push({std:s,prod:p,mrlRaw:String(v)}));
+        });
       }
-      return pairs.map(r=>{
-        let status='N/A'; let color='var(--t3)';
+      if(!pairs.length)pairs=[{std:'ไม่พบในฐานข้อมูล',prod:'—',mrlRaw:'—'}];
+      pairs.forEach(r=>{
+        let status='N/A';let color='var(--t3)';
         if(r.mrlRaw!=='—'&&item.found!==''){
           totalCount++;
           if(r.mrlRaw==='ND'||r.mrlRaw==='Not Detected'){
@@ -1694,30 +1679,40 @@ const t2={
           if(status==='PASS'){color='var(--green)';passCount++;}
           else if(status==='FAIL')color='var(--red)';
         }
-        return `<tr style="border-bottom:1px solid var(--bd);background:${status==='FAIL'?'#FEF2F2':''}">
-          <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}</td>
-          <td style="padding:8px 12px;font-size:12px;color:var(--blue)">${r.std}</td>
-          <td style="padding:8px 12px;font-size:12px;color:var(--t2)">${r.prod}</td>
-          <td style="padding:8px 12px;font-size:13px;color:var(--t2);text-align:right">${r.mrlRaw}</td>
-          <td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600">${item.found||'—'}</td>
-          <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${color}">${status}</span></td>
-        </tr>`;
-      }).join('');
-    }).join('');
-    const allPass=totalCount>0&&passCount===totalCount;
-    const failItems=this._quickItems.filter(item=>{
-      const found=parseFloat(item.found);
-      const subData=wDATA.find(d=>d.name===item.sub);
-      const pairs=[];
-      if(std&&prod){const mrlRaw=subData?.std_mrls?.[std]?.[prod]||'—';pairs.push({std,mrlRaw});}
-      else if(subData){Object.entries(subData.std_mrls||{}).forEach(([s,prods])=>Object.entries(prods).forEach(([p,v])=>pairs.push({std:s,mrlRaw:String(v)})));}
-      return pairs.some(r=>{
-        if(r.mrlRaw==='—'||item.found==='')return false;
-        if(r.mrlRaw==='ND'||r.mrlRaw==='Not Detected')return !(!item.found||found===0);
-        return !isNaN(parseFloat(r.mrlRaw))&&found>parseFloat(r.mrlRaw);
+        allResRows.push({sub:item.sub,std:r.std,prod:r.prod,mrlRaw:r.mrlRaw,found:item.found,status,color});
       });
     });
-    const failMsg=failItems.length?`เกินมาตรฐาน: ${failItems.map(x=>x.sub).join(', ')}`:'';
+    const allPass=totalCount>0&&passCount===totalCount;
+    const failItems=[...new Set(allResRows.filter(r=>r.status==='FAIL').map(r=>r.sub))];
+    const failMsg=failItems.length?'เกินมาตรฐาน: '+failItems.join(', '):'';
+    this._resData=allResRows;
+    this._renderResTable(allResRows,allPass,passCount,totalCount,failMsg);
+  },
+
+  _resData:[],
+  _resFilterStd:null,
+  _resFilterProd:null,
+
+  _renderResTable(data,allPass,passCount,totalCount,failMsg){
+    const filtered=data.filter(r=>
+      (!this._resFilterStd||r.std===this._resFilterStd)&&
+      (!this._resFilterProd||r.prod===this._resFilterProd)
+    );
+    const stdList=[...new Set(data.map(r=>r.std))].sort();
+    const prodList=[...new Set(data.map(r=>r.prod))].sort();
+    const mkSel=(field,vals,cur,fn)=>`<select onchange="${fn}(this.value)"
+      style="font-size:10px;font-weight:700;color:${cur?'var(--blue)':'#475569'};border:none;background:none;cursor:pointer;max-width:120px">
+      <option value="">${field}${cur?' ▼':' ▾'}</option>
+      ${vals.map(v=>`<option value="${v}" ${cur===v?'selected':''}>${v.length>20?v.slice(0,18)+'…':v}</option>`).join('')}
+    </select>`;
+    const rows=filtered.map(r=>`<tr style="border-bottom:1px solid var(--bd);background:${r.status==='FAIL'?'#FEF2F2':''}">
+      <td style="padding:8px 12px;font-size:13px;font-weight:600">${r.sub}</td>
+      <td style="padding:8px 12px;font-size:12px;color:var(--blue)">${r.std}</td>
+      <td style="padding:8px 12px;font-size:12px;color:var(--t2)">${r.prod}</td>
+      <td style="padding:8px 12px;font-size:13px;color:var(--t2);text-align:right">${r.mrlRaw}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600">${r.found||'—'}</td>
+      <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${r.color}">${r.status}</span></td>
+    </tr>`).join('');
     document.getElementById('t2c-res').innerHTML=`
       <div style="margin-top:16px;border:2px solid ${allPass?'var(--green)':'var(--red)'};border-radius:var(--rl2);overflow:hidden">
         <div style="background:${allPass?'#F0FDF4':'#FEF2F2'};padding:12px 16px;display:flex;align-items:center;gap:10px">
@@ -1737,16 +1732,36 @@ const t2={
         <table style="width:100%;border-collapse:collapse">
           <thead><tr style="background:#E8EDF5">
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สาร</th>
-            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">มาตรฐาน</th>
-            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สินค้า</th>
+            <th style="padding:4px 8px;font-size:11px;font-weight:700;color:#475569;text-align:left">
+              ${mkSel('มาตรฐาน',stdList,this._resFilterStd,'t2._filterRes("std",')}
+            </th>
+            <th style="padding:4px 8px;font-size:11px;font-weight:700;color:#475569;text-align:left">
+              ${mkSel('สินค้า',prodList,this._resFilterProd,'t2._filterRes("prod",')}
+            </th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">เกณฑ์</th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
+        ${filtered.length<data.length?`<div style="padding:8px 12px;font-size:11px;color:var(--t2);background:#F8FAFC">แสดง ${filtered.length} / ${data.length} รายการ <button onclick="t2._resetResFilter()" style="border:none;background:none;color:var(--blue);cursor:pointer;font-size:11px;font-weight:700">ล้าง filter</button></div>`:''}
       </div>
       <button onclick="t2._clearQuick()" style="margin-top:10px;width:100%;padding:10px;border:1.5px solid var(--bd);border-radius:var(--r);background:#fff;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer">🔄 ล้างและทดสอบใหม่</button>`;
+  },
+
+  _filterRes(field,val){
+    if(field==='std')this._resFilterStd=val||null;
+    else this._resFilterProd=val||null;
+    const d=this._resData;
+    const pass=d.filter(r=>r.status==='PASS').length;
+    const total=d.filter(r=>r.status!=='N/A').length;
+    const allPass=total>0&&pass===total;
+    const failItems=[...new Set(d.filter(r=>r.status==='FAIL').map(r=>r.sub))];
+    this._renderResTable(d,allPass,pass,total,failItems.length?'เกินมาตรฐาน: '+failItems.join(', '):'');
+  },
+  _resetResFilter(){
+    this._resFilterStd=null;this._resFilterProd=null;
+    this._filterRes('std','');
   },
   _renderTableC(subs){
     const area=document.getElementById('t2c-input-area');
