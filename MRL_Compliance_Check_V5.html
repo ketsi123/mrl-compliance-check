@@ -2160,6 +2160,16 @@ const admin={
       delete item.std_mrls[std][prod];
       if(!Object.keys(item.std_mrls[std]).length)delete item.std_mrls[std];
     }
+    // ตรวจว่า std นี้ยังมี limit เหลืออยู่ใน wDATA ไหม
+    const stdStillUsed=wDATA.some(d=>d.std_mrls&&d.std_mrls[std]&&Object.keys(d.std_mrls[std]).length>0);
+    if(!stdStillUsed&&wSTD[std]){
+      delete wSTD[std];
+      // ลบ Standard ออกจาก Sheets ด้วย
+      gasCall({action:'deleteStandard',name:std}).then(r=>{
+        if(r?.ok) showToast('☁️ ลบมาตรฐาน '+std+' ออกจาก Sheets แล้ว','info','☁️');
+      });
+      this.fillStdSel();
+    }
     this.addAuditEntry('del',{sub,std,prod,val:delVal,snapshot:snapDel});
     draftMgr.markDirty();
     this.updateStats();this.refreshPreview();this.saveToStorage();
