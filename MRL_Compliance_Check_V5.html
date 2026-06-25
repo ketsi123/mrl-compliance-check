@@ -767,7 +767,6 @@ tr:hover td{background:#FAFCFF}
 
     <!-- Mode C: กรอกผล Lab เอง -->
     <div id="t2-mode-c" style="display:none">
-      <div class="sec-lbl"><div class="sec-num">1</div><div class="sec-txt">เลือกสินค้า</div></div>
       <div class="prow">
         <button class="pb" data-p3="Pork"    onclick="t2.spC('Pork')">🐷 Pork</button>
         <button class="pb" data-p3="Egg"     onclick="t2.spC('Egg')">🥚 Egg</button>
@@ -776,9 +775,7 @@ tr:hover td{background:#FAFCFF}
         <button class="pb" data-p3="Shrimp"  onclick="t2.spC('Shrimp')">🍤 Shrimp</button>
         <button class="pb" id="t2c-all-prod" onclick="t2.spCAll()" style="font-weight:800">✦ ALL</button>
       </div>
-
-      <div class="sec-lbl"><div class="sec-num">2</div><div class="sec-txt">เลือกมาตรฐาน</div></div>
-      <div id="t2c-stds" style="margin-bottom:16px"><span style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</span></div>
+      <div id="t2c-stds" style="margin-bottom:16px"></div>
 
       <!-- Quick Search Bar -->
       <div style="margin-bottom:14px;position:relative">
@@ -1561,33 +1558,30 @@ const t2={
     this.ui();
   },
   // ── Mode C functions ──
-  prodC:null, stdC:null,
+  prodsC:new Set(), stdC:null,
   spCAll(){
-    this.prodC='ALL'; this.stdC=null; this._quickItems=[];
-    this._renderQuickTable();
-    document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb');
+    const all=['Pork','Egg','Chicken','Poultry','Shrimp'];
+    const allSel=all.every(p=>this.prodsC.has(p));
+    if(allSel)this.prodsC.clear();else all.forEach(p=>this.prodsC.add(p));
+    document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb'+(this.prodsC.has(b.dataset.p3)?' sel-'+b.dataset.p3:''));
     const ab=document.getElementById('t2c-all-prod');
-    if(ab)ab.className='pb sel-all';
-    buildStds('t2c-stds',null,'t2.ssC',null,null);
+    if(ab)ab.className='pb'+(all.every(p=>this.prodsC.has(p))?' sel-all':'');
+    this.stdC=null;
+    buildStds('t2c-stds',null,'t2.ssC',null,this.prodsC.size?this.prodsC:null);
   },
   spC(p){
-    this.prodC=p; this.stdC=null; this._quickItems=[];
-    this._renderQuickTable();
-    document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb'+(b.dataset.p3===p?' sel-'+p:''));
+    if(this.prodsC.has(p))this.prodsC.delete(p);else this.prodsC.add(p);
+    document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb'+(this.prodsC.has(b.dataset.p3)?' sel-'+b.dataset.p3:''));
+    const all=['Pork','Egg','Chicken','Poultry','Shrimp'];
     const ab=document.getElementById('t2c-all-prod');
-    if(ab)ab.className='pb';
-    buildStds('t2c-stds',null,'t2.ssC',null,p?new Set([p]):null);
+    if(ab)ab.className='pb'+(all.every(x=>this.prodsC.has(x))?' sel-all':'');
+    this.stdC=null;
+    buildStds('t2c-stds',null,'t2.ssC',null,this.prodsC.size?this.prodsC:null);
   },
   ssC(s){
-    t2.stdC=s; t2._quickItems=[];
-    t2._renderQuickTable();
+    if(!s)return;
+    t2.stdC=s;
     document.querySelectorAll('#t2c-stds .sc').forEach(c=>c.classList.toggle('sel',c.dataset.s===s));
-    if(!s) return;
-    const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][t2.prodC]).sort((a,b)=>a.name.localeCompare(b.name));
-    t2._subsC=subs;
-    const area=document.getElementById('t2c-input-area');
-    if(area) area.style.display='none';
-    // อัปเดต quick search ให้แสดงเกณฑ์ของ std×prod ที่เลือก
     const q=document.getElementById('t2c-quick-search')?.value;
     if(q) t2._quickSearch(q);
   },
@@ -1597,7 +1591,7 @@ const t2={
     if(!q){dd.style.display='none';return;}
     const results=wDATA.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())).slice(0,12);
     if(!results.length){dd.style.display='none';return;}
-    const std=this.stdC; const prod=this.prodC;
+    const std=this.stdC; const prod=this.prodsC.size===1?[...this.prodsC][0]:null;
     dd.innerHTML=results.map(d=>{
       const mrl=(std&&prod&&d.std_mrls?.[std]?.[prod])?d.std_mrls[std][prod]:'—';
       return `<div onclick="t2._quickAdd('${d.name.replace(/'/g,"\\'")}','${mrl}')"
@@ -1657,7 +1651,7 @@ const t2={
     const dd=document.getElementById('t2c-quick-dd');
     if(dd)dd.style.display='none';
     // reset product/standard filter
-    this.prodC=null;this.stdC=null;
+    this.prodsC=new Set();this.stdC=null;
     document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb');
     const ab=document.getElementById('t2c-all-prod');if(ab)ab.className='pb';
     const stds=document.getElementById('t2c-stds');
@@ -1669,7 +1663,7 @@ const t2={
   },
   _checkQuick(){
     if(!this._quickItems.length){showToast('เพิ่มสารก่อนค่อยตรวจสอบ','warn','⚠️');return;}
-    const std=this.stdC; const prod=this.prodC;
+    const std=this.stdC; const prod=this.prodsC.size===1?[...this.prodsC][0]:null;
     let passCount=0; let totalCount=0;
     const rows=this._quickItems.map(item=>{
       const found=parseFloat(item.found);
