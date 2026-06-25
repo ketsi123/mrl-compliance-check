@@ -1085,7 +1085,7 @@ function saveEditModal(){
 // ══════════════════════════════════════════
 // GAS / Google Sheets Integration
 // ══════════════════════════════════════════
-function getGasUrl(){ return 'https://script.google.com/macros/s/AKfycbyj4iKX1SrcikSAZw4U24NlnSroVu3B8Wc5Y-giXbAlo0oCH5odxbo3QJNzjsX2SVhPRQ/exec'; }
+function getGasUrl(){ return 'https://script.google.com/macros/s/AKfycbxT3toNEC03ahc-R3L6QUOoKPr118-XtlMY57gbOeZ-srWgiFdvpsGlgC1qdSUP_jdziQ/exec'; }
 function saveGasUrl(){ try{ localStorage.setItem('gas_url', getGasUrl()); }catch(e){} }
 async function gasCall(body){
   const url = getGasUrl();
@@ -1988,6 +1988,8 @@ const admin={
   },
   init(){
     this.updateStats();this.fillStdSel();this.fillSubList();this.fillGrpList();this.fillProdList();this.loadFromStorage();xFilter.renderFiltered();this.renderAuditLog();
+    // โหลด audit log จาก Google Sheets
+    this.loadAuditFromSheets();
   },
   updateStats(){
     document.getElementById('ac-sub').textContent=wDATA.length;
@@ -2275,7 +2277,36 @@ const admin={
     const entry={type,data,time:new Date().toLocaleTimeString('th-TH'),ts:Date.now(),
       snapshot:JSON.stringify({data:JSON.parse(JSON.stringify(wDATA)),std:JSON.parse(JSON.stringify(wSTD))})};
     this.auditLog.unshift(entry);
-    if(this.auditLog.length>200)this.auditLog.pop();
+    if(this.auditLog.length>500)this.auditLog.pop();
+    this.renderAuditLog();
+    // Push to Google Sheets
+    gasCall({
+      action:'saveAuditLog',
+      type,
+      sub:data.sub||'',std:data.std||'',prod:data.prod||'',val:data.val||'',
+      ts:new Date().toISOString()
+    }).catch(e=>console.warn('audit push failed:',e));
+  },
+
+  async loadAuditFromSheets(){
+    const res=await gasCall({action:'readAuditLog'});
+    if(!res?.ok||!res.logs?.length) return;
+    // merge กับ log ใน memory (ไม่ซ้ำ)
+    const existing=new Set(this.auditLog.map(e=>e.ts));
+    const fromSheets=res.logs
+      .filter(r=>r.ts)
+      .map(r=>({
+        type:r.action||'other',
+        data:{sub:r.sub,std:r.std,prod:r.prod,val:r.val},
+        time:new Date(r.ts).toLocaleTimeString('th-TH'),
+        ts:new Date(r.ts).getTime(),
+        snapshot:null,
+        fromSheets:true
+      }))
+      .filter(e=>!existing.has(e.ts));
+    this.auditLog=[...this.auditLog,...fromSheets]
+      .sort((a,b)=>b.ts-a.ts)
+      .slice(0,500);
     this.renderAuditLog();
   },
 
@@ -2287,11 +2318,12 @@ const admin={
     box.innerHTML=this.auditLog.map((e,i)=>{
       let badge,detail;
       if(e.type==='add'){badge='<span class="audit-badge ab-new">เพิ่ม</span>';detail=`<strong>${e.data.sub}</strong> × <span style="color:var(--blue)">${e.data.std}</span> × ${e.data.prod} = <strong>${e.data.val}</strong>`;}
-      else if(e.type==='update'){badge='<span class="audit-badge ab-upd">อัปเดต</span>';detail=`<strong>${e.data.sub}</strong> × <span style="color:var(--blue)">${e.data.std}</span> × ${e.data.prod}: <span style="text-decoration:line-through;color:var(--t3)">${e.data.prev}</span> → <strong>${e.data.val}</strong>`;}
+      else if(e.type==='update'){badge='<span class="audit-badge ab-upd">อัปเดต</span>';detail=`<strong>${e.data.sub}</strong> × <span style="color:var(--blue)">${e.data.std}</span> × ${e.data.prod}: <span style="text-decoration:line-through;color:var(--t3)">${e.data.prev||''}</span> → <strong>${e.data.val}</strong>`;}
       else if(e.type==='del'){badge='<span class="audit-badge ab-del">ลบ</span>';detail=`<strong>${e.data.sub}</strong> × <span style="color:var(--blue)">${e.data.std}</span> × ${e.data.prod}`;}
-      else{badge='<span class="audit-badge ab-upd">อื่นๆ</span>';detail=e.type;}
-      const undoBtn=i===0?`<button class="audit-undo" onclick="admin.undoLast()" title="ยกเลิกการแก้ไขนี้">↩ Undo</button>`:'';
-      return `<div class="audit-row">${badge}<div class="audit-detail">${detail}</div>${undoBtn}<div class="audit-time">${e.time}</div></div>`;
+      else{badge='<span class="audit-badge ab-upd">อื่นๆ</span>';detail=`${e.data.sub||''} ${e.data.std||''}`;}
+      const undoBtn=(!e.fromSheets&&i===0)?`<button class="audit-undo" onclick="admin.undoLast()" title="ยกเลิกการแก้ไขนี้">↩ Undo</button>`:'';
+      const src=e.fromSheets?'<span style="font-size:9px;color:var(--t3);margin-left:4px">☁️</span>':'';
+      return `<div class="audit-row">${badge}<div class="audit-detail">${detail}${src}</div>${undoBtn}<div class="audit-time">${e.time}</div></div>`;
     }).join('');
   },
 
