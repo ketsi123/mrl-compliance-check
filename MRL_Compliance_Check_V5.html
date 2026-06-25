@@ -33,17 +33,7 @@ body{font-family:var(--font);background:#E8EDF5;color:var(--tx);min-height:100vh
 /* ════ BENTO LANDING ════ */
 #bento-landing{display:block}
 #bento-landing.hidden{display:none}
-.bento-wrap{min-height:calc(100vh - 58px);padding:24px 20px;display:flex;justify-content:center;align-items:center;
-  background:linear-gradient(-45deg,#E0E7FF,#EDE9FE,#DBEAFE,#FCE7F3,#E0F2FE,#F0FDF4,#EDE9FE,#E0E7FF);
-  background-size:400% 400%;
-  animation:bentoDrift 18s ease infinite;}
-@keyframes bentoDrift{
-  0%{background-position:0% 50%}
-  25%{background-position:100% 50%}
-  50%{background-position:100% 0%}
-  75%{background-position:0% 100%}
-  100%{background-position:0% 50%}
-}
+.bento-wrap{min-height:calc(100vh - 58px);background:linear-gradient(135deg,#E0E7FF 0%,#F0F4FF 40%,#EDE9FE 70%,#FCE7F3 100%);padding:24px 20px;display:flex;justify-content:center;align-items:center}
 .bento-box{background:transparent;border-radius:16px;width:100%;position:relative;box-shadow:none;border:none}
 .bento-bg-glow{position:absolute;top:-80px;left:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(200,210,255,.25) 0%,transparent 65%);pointer-events:none}
 .bento-bg-glow2{position:absolute;bottom:-100px;right:-60px;width:400px;height:400px;background:radial-gradient(circle,rgba(180,220,255,.15) 0%,transparent 65%);pointer-events:none}
