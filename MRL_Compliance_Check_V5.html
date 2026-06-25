@@ -1164,7 +1164,7 @@ function chkKey(){
 document.addEventListener('DOMContentLoaded',()=>{
   try{const s=localStorage.getItem('ra_key');if(s){document.getElementById('api-key').value=s;chkKey();}}catch(e){}
   // Reset admin form fields เพื่อป้องกัน browser autofill
-  ['admin-sub-name','admin-lim-prod','admin-lim-val','admin-sub-grp','admin-lim-unit','admin-std-name','admin-std-id','admin-std-note'].forEach(id=>{
+  ['admin-sub-name','admin-lim-prod','admin-lim-val','admin-sub-grp','admin-lim-unit','admin-std-name','admin-std-id','admin-std-note','admin-srch'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   const seg=document.getElementById('admin-sub-seg');if(seg)seg.value='';
