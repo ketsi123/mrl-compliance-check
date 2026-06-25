@@ -2276,7 +2276,7 @@ const admin={
   auditLog:[],
 
   addAuditEntry(type,data){
-    const entry={type,data,time:new Date().toLocaleTimeString('th-TH'),ts:Date.now(),
+    const entry={type,data,time:new Date().toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}),ts:Date.now(),
       snapshot:JSON.stringify({data:JSON.parse(JSON.stringify(wDATA)),std:JSON.parse(JSON.stringify(wSTD))})};
     this.auditLog.unshift(entry);
     if(this.auditLog.length>500)this.auditLog.pop();
@@ -2304,7 +2304,7 @@ const admin={
       .map(r=>({
         type:r.action||'other',
         data:{sub:r.sub,std:r.std,prod:r.prod,val:r.val,prev:r.prev||''},
-        time:new Date(r.ts).toLocaleTimeString('th-TH'),
+        time:new Date(r.ts).toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}),
         ts:new Date(r.ts).getTime(),
         snapshot:null,
         fromSheets:true
