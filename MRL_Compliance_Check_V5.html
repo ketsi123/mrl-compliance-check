@@ -688,11 +688,14 @@ tr:hover td{background:#FAFCFF}
 
   <!-- ═══ TAB 0: รายการตรวจ ═══ -->
   <div class="panel active" id="tab0">
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px">
-      <div class="search-wrap" style="flex:1;margin-bottom:0">
-        <span class="search-icon">🔍</span>
-        <input class="search-inp" id="t1-q" placeholder="ค้นหาชื่อสาร หรือมาตรฐาน (เช่น EU, DLD, Tetracycline)..." oninput="t1.onSearch(this.value)" autocomplete="off">
-        <button class="search-clr" id="t1-qx" onclick="t1.clearSearch()">×</button>
+    <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:18px">
+      <div style="flex:1;position:relative">
+        <div class="search-wrap" style="margin-bottom:0">
+          <span class="search-icon">🔍</span>
+          <input class="search-inp" id="t1-q" placeholder="ค้นหาชื่อสาร หรือมาตรฐาน (เช่น EU, DLD, Tetracycline)..." oninput="t1.onSearch(this.value)" onkeydown="t1.onSearchKey(event)" autocomplete="off">
+          <button class="search-clr" id="t1-qx" onclick="t1.clearSearch()">×</button>
+        </div>
+        <div id="t1-q-dd" style="display:none;position:absolute;left:0;right:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);max-height:220px;overflow-y:auto;margin-top:4px"></div>
       </div>
       <button class="clr-all-btn" id="t1-clr-all" onclick="t1.clearAll()">✕ ล้างทั้งหมด</button>
     </div>
@@ -1188,6 +1191,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   autoSyncFromSheet();
   // Default mode C
   setTimeout(()=>t2.setMode('C'),0);
+  // Click-outside ปิด dropdown Tab 0
+  document.addEventListener('click',(e)=>{
+    const dd=document.getElementById('t1-q-dd');
+    const inp=document.getElementById('t1-q');
+    if(dd&&inp&&!inp.contains(e.target)&&!dd.contains(e.target)){dd.style.display='none';}
+  });
 });
 window.addEventListener('beforeunload',(e)=>{
   if(draftMgr.isDirty){
@@ -1295,12 +1304,42 @@ const t1={
   onSearch(v){
     this.q=v.trim();
     const qx=document.getElementById('t1-qx');if(qx)qx.style.display=this.q?'':'none';
+    this._showSearchDd(v.trim());
     this.uClr();this.applySearch();this.render();
+  },
+  onSearchKey(e){
+    if(e.key==='Escape'){const dd=document.getElementById('t1-q-dd');if(dd)dd.style.display='none';}
+  },
+  _showSearchDd(q){
+    const dd=document.getElementById('t1-q-dd');
+    if(!dd)return;
+    if(!q){dd.style.display='none';return;}
+    const ql=q.toLowerCase();
+    const subMatches=wDATA.filter(d=>d.name.toLowerCase().includes(ql)).slice(0,10);
+    const stdMatches=wSTD.filter(s=>(s.name||'').toLowerCase().includes(ql)||(s.label||'').toLowerCase().includes(ql)).slice(0,5);
+    if(!subMatches.length&&!stdMatches.length){dd.style.display='none';return;}
+    let html='';
+    if(subMatches.length){
+      html+=`<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">สารตกค้าง</div>`;
+      html+=subMatches.map(d=>`<div onclick="t1._selectSuggestion('${d.name.replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${d.name}</strong></span><span style="font-size:11px;color:var(--t2)">ค้นหาทุกมาตรฐาน</span></div>`).join('');
+    }
+    if(stdMatches.length){
+      html+=`<div style="padding:6px 12px;font-size:10px;font-weight:700;color:#64748B;background:#F8FAFC;letter-spacing:.5px">มาตรฐาน</div>`;
+      html+=stdMatches.map(s=>`<div onclick="t1._selectSuggestion('${(s.label||s.name).replace(/'/g,"\\'")}')" style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''"><span><strong>${s.label||s.name}</strong></span><span style="font-size:11px;color:var(--t2)">${s.group||''}</span></div>`).join('');
+    }
+    dd.innerHTML=html;
+    dd.style.display='';
+  },
+  _selectSuggestion(name){
+    const dd=document.getElementById('t1-q-dd');if(dd)dd.style.display='none';
+    const inp=document.getElementById('t1-q');if(inp)inp.value=name;
+    this.onSearch(name);
   },
   clearSearch(){
     this.q='';
     const inp=document.getElementById('t1-q');if(inp)inp.value='';
     const qx=document.getElementById('t1-qx');if(qx)qx.style.display='none';
+    const dd=document.getElementById('t1-q-dd');if(dd)dd.style.display='none';
     if(!this.prods.size){const a=document.getElementById('t1-stds');if(a)a.innerHTML='<div style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</div>';}
     this.uClr();this.applySearch();this.render();
   },
@@ -1309,6 +1348,7 @@ const t1={
     this.seg='ALL';this.req='ALL';this.name='ALL';
     const inp=document.getElementById('t1-q');if(inp)inp.value='';
     const qx=document.getElementById('t1-qx');if(qx)qx.style.display='none';
+    const dd=document.getElementById('t1-q-dd');if(dd)dd.style.display='none';
     document.querySelectorAll('[data-p]').forEach(b=>b.className='pb');
     document.querySelectorAll('[data-p]').forEach(b=>b.classList.remove('has-match','no-match'));
     buildStds('t1-stds','t1-all','t1.ts','t1.sa',null);
