@@ -1580,9 +1580,10 @@ const t2={
     const subs=wDATA.filter(d=>d.std_mrls[s]&&d.std_mrls[s][t2.prodC]).sort((a,b)=>a.name.localeCompare(b.name));
     t2._subsC=subs;
     const area=document.getElementById('t2c-input-area');
-    if(!area) return;
-    area.style.display='';
-    t2._renderTableC(subs);
+    if(area) area.style.display='none';
+    // อัปเดต quick search ให้แสดงเกณฑ์ของ std×prod ที่เลือก
+    const q=document.getElementById('t2c-quick-search')?.value;
+    if(q) t2._quickSearch(q);
   },
   _quickItems:[], // {sub, mrl, found, unit}
   _quickSearch(q){
