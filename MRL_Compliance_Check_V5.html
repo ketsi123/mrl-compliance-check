@@ -1730,8 +1730,8 @@ const t2={
       <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${r.color}">${r.status}</span></td>
     </tr>`).join('');
     document.getElementById('t2c-res').innerHTML=`
-      <div style="margin-top:16px;border:2px solid ${allPass?'var(--green)':'var(--red)'};border-radius:var(--rl2);overflow:hidden">
-        <div style="background:${allPass?'#F0FDF4':'#FEF2F2'};padding:12px 16px;display:flex;align-items:center;gap:10px">
+      <div style="margin-top:16px;border:2px solid ${allPass?'var(--green)':'var(--red)'};border-radius:var(--rl2);overflow:visible">
+        <div style="background:${allPass?'#F0FDF4':'#FEF2F2'};padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:var(--rl2) var(--rl2) 0 0">
           <span style="font-size:22px">${allPass?'✅':'❌'}</span>
           <div>
             <div style="font-weight:800;font-size:15px;color:${allPass?'var(--green)':'var(--red)'}">
