@@ -1295,7 +1295,7 @@ const t1={
   onSearch(v){
     this.q=v.trim();
     const qx=document.getElementById('t1-qx');if(qx)qx.style.display=this.q?'':'none';
-    this.uClr();this.applySearch();
+    this.uClr();this.applySearch();this.render();
   },
   clearSearch(){
     this.q='';
