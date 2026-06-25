@@ -763,40 +763,35 @@ tr:hover td{background:#FAFCFF}
 
     <!-- Mode C: กรอกผล Lab เอง -->
     <div id="t2-mode-c" style="display:none">
-      <div class="scope-box" style="margin-bottom:16px">
-        <div class="scope-row">
-          <div class="scope-key">สินค้า</div>
-          <div class="prow" style="margin-bottom:0;flex:1">
-            <button class="pb" data-p3="Pork"    onclick="t2.spC('Pork')">🐷 Pork</button>
-            <button class="pb" data-p3="Egg"     onclick="t2.spC('Egg')">🥚 Egg</button>
-            <button class="pb" data-p3="Chicken" onclick="t2.spC('Chicken')">🐔 Chicken</button>
-            <button class="pb" data-p3="Poultry" onclick="t2.spC('Poultry')">🍗 Poultry</button>
-            <button class="pb" data-p3="Shrimp"  onclick="t2.spC('Shrimp')">🍤 Shrimp</button>
-          </div>
-        </div>
-        <div class="scope-row" style="margin-bottom:0">
-          <div class="scope-key">มาตรฐาน</div>
-          <div id="t2c-stds" style="flex:1"><span style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</span></div>
-        </div>
+      <div class="sec-lbl"><div class="sec-num">1</div><div class="sec-txt">เลือกสินค้า</div></div>
+      <div class="prow">
+        <button class="pb" data-p3="Pork"    onclick="t2.spC('Pork')">🐷 Pork</button>
+        <button class="pb" data-p3="Egg"     onclick="t2.spC('Egg')">🥚 Egg</button>
+        <button class="pb" data-p3="Chicken" onclick="t2.spC('Chicken')">🐔 Chicken</button>
+        <button class="pb" data-p3="Poultry" onclick="t2.spC('Poultry')">🍗 Poultry</button>
+        <button class="pb" data-p3="Shrimp"  onclick="t2.spC('Shrimp')">🍤 Shrimp</button>
+        <button class="pb" id="t2c-all-prod" onclick="t2.spCAll()" style="font-weight:800">✦ ALL</button>
       </div>
+
+      <div class="sec-lbl"><div class="sec-num">2</div><div class="sec-txt">เลือกมาตรฐาน</div></div>
+      <div id="t2c-stds" style="margin-bottom:16px"><span style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</span></div>
 
       <!-- Quick Search Bar -->
       <div style="margin-bottom:14px;position:relative">
         <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">🔍 ค้นหาสารด่วน — พิมพ์แล้วเลือกเพื่อเพิ่มเข้ารายการ</div>
-        <div style="display:flex;gap:8px;align-items:center;position:relative">
-          <input id="t2c-quick-search" type="text" autocomplete="off"
-            placeholder="พิมพ์ชื่อสาร เช่น DDT, Amoxicillin..."
-            style="flex:1;padding:9px 14px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:13px;outline:none;font-family:inherit"
-            oninput="t2._quickSearch(this.value)"
-            onkeydown="t2._quickSearchKey(event)">
-          <div id="t2c-quick-dd" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);max-height:220px;overflow-y:auto;margin-top:4px"></div>
-        </div>
+        <input id="t2c-quick-search" type="text" autocomplete="off"
+          placeholder="พิมพ์ชื่อสาร เช่น DDT, Amoxicillin..."
+          style="width:100%;padding:9px 14px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:13px;outline:none;font-family:inherit;box-sizing:border-box"
+          oninput="t2._quickSearch(this.value)"
+          onkeydown="t2._quickSearchKey(event)">
+        <div id="t2c-quick-dd" style="display:none;position:absolute;left:0;right:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);max-height:220px;overflow-y:auto;margin-top:4px"></div>
       </div>
+
       <!-- Quick add list -->
       <div id="t2c-quick-list" style="display:none;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px">📋 รายการที่เพิ่ม — กรอกค่าที่พบแล้วกด ตรวจสอบ</div>
         <div style="border:1.5px solid var(--bd);border-radius:var(--rl2);overflow:hidden">
-          <table style="width:100%;border-collapse:collapse" id="t2c-quick-table">
+          <table style="width:100%;border-collapse:collapse">
             <thead>
               <tr style="background:#E8EDF5">
                 <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">ชื่อสาร</th>
@@ -811,10 +806,13 @@ tr:hover td{background:#FAFCFF}
         </div>
         <button onclick="t2._checkQuick()" class="abtn rdy" style="margin-top:12px;width:100%">🔍 ตรวจสอบ</button>
       </div>
-        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px">📝 กรอกผลการตรวจ</div>
+
+      <!-- ตารางกรอกผล (full list) -->
+      <div id="t2c-input-area" style="display:block">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px">📝 กรอกผลการตรวจ (ทุกสารใน scope)</div>
         <div id="t2c-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
         <button onclick="t2.addRowC()" style="border:1.5px dashed var(--bd2);background:none;border-radius:var(--r);padding:8px 16px;font-size:12px;color:var(--blue);cursor:pointer;width:100%">+ เพิ่มสาร</button>
-        <button onclick="t2.checkC()" class="abtn rdy" style="margin-top:14px;width:100%">🔍 ตรวจสอบ</button>
+        <button onclick="t2.checkC()" class="abtn rdy" style="margin-top:14px;width:100%">🔍 ตรวจสอบ (ทั้งหมด)</button>
       </div>
       <div id="t2c-res"></div>
     </div>
@@ -1563,10 +1561,20 @@ const t2={
   },
   // ── Mode C functions ──
   prodC:null, stdC:null,
+  spCAll(){
+    this.prodC='ALL'; this.stdC=null; this._quickItems=[];
+    this._renderQuickTable();
+    document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb');
+    const ab=document.getElementById('t2c-all-prod');
+    if(ab)ab.className='pb sel-all';
+    buildStds('t2c-stds',null,'t2.ssC',null,null);
+  },
   spC(p){
     this.prodC=p; this.stdC=null; this._quickItems=[];
     this._renderQuickTable();
     document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb'+(b.dataset.p3===p?' sel-'+p:''));
+    const ab=document.getElementById('t2c-all-prod');
+    if(ab)ab.className='pb';
     buildStds('t2c-stds',null,'t2.ssC',null,p?new Set([p]):null);
   },
   ssC(s){
@@ -1585,16 +1593,16 @@ const t2={
   _quickSearch(q){
     const dd=document.getElementById('t2c-quick-dd');
     if(!q){dd.style.display='none';return;}
-    const std=this.stdC; const prod=this.prodC;
-    const results=wDATA.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())).slice(0,10);
+    const results=wDATA.filter(d=>d.name.toLowerCase().includes(q.toLowerCase())).slice(0,12);
     if(!results.length){dd.style.display='none';return;}
+    const std=this.stdC; const prod=this.prodC;
     dd.innerHTML=results.map(d=>{
-      const mrl=std&&prod&&d.std_mrls?.[std]?.[prod]?d.std_mrls[std][prod]:'—';
+      const mrl=(std&&prod&&d.std_mrls?.[std]?.[prod])?d.std_mrls[std][prod]:'—';
       return `<div onclick="t2._quickAdd('${d.name.replace(/'/g,"\\'")}','${mrl}')"
         style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center"
         onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background=''">
         <span><strong>${d.name}</strong></span>
-        <span style="font-size:11px;color:var(--t2);margin-left:8px">เกณฑ์: ${mrl}</span>
+        <span style="font-size:11px;color:var(--t2);margin-left:8px">${mrl!=='—'?'เกณฑ์: '+mrl:'ค้นหาทุกมาตรฐาน'}</span>
       </div>`;
     }).join('');
     dd.style.display='';
@@ -1643,34 +1651,67 @@ const t2={
     this._renderQuickTable();
   },
   _checkQuick(){
-    if(!this.stdC||!this.prodC){showToast('เลือกสินค้าและมาตรฐานก่อน','warn','⚠️');return;}
     if(!this._quickItems.length){showToast('เพิ่มสารก่อนค่อยตรวจสอบ','warn','⚠️');return;}
+    const std=this.stdC; const prod=this.prodC;
     const rows=this._quickItems.map(item=>{
       const found=parseFloat(item.found);
-      const mrlRaw=item.mrl;
-      let status='INCONCLUSIVE';let color='var(--amb)';
-      if(mrlRaw==='ND'||mrlRaw==='Not Detected'){
-        status=(!item.found||found===0)?'PASS':'FAIL';
-        color=status==='PASS'?'var(--green)':'var(--red)';
-      } else if(!isNaN(parseFloat(mrlRaw))&&item.found!==''){
-        status=found<=parseFloat(mrlRaw)?'PASS':'FAIL';
-        color=status==='PASS'?'var(--green)':'var(--red)';
+      // ถ้าไม่ได้เลือก std → หาทุกมาตรฐานที่มีสารนี้
+      const subData=wDATA.find(d=>d.name===item.sub);
+      let results=[];
+      if(std&&prod){
+        const mrlRaw=subData?.std_mrls?.[std]?.[prod]||'—';
+        results=[{std,prod,mrlRaw}];
+      } else {
+        // วิ่งหาทุก std×prod ที่มีสารนี้
+        if(subData){
+          Object.entries(subData.std_mrls||{}).forEach(([s,prods])=>{
+            Object.entries(prods).forEach(([p,v])=>{
+              if(!prod||p===prod) results.push({std:s,prod:p,mrlRaw:v});
+            });
+          });
+        }
+        if(!results.length) results=[{std:'—',prod:'—',mrlRaw:'—'}];
       }
-      return `<tr style="border-bottom:1px solid var(--bd)">
-        <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}</td>
-        <td style="padding:8px 12px;font-size:13px;color:var(--t2)">${mrlRaw}</td>
-        <td style="padding:8px 12px;font-size:13px;text-align:right">${item.found||'—'} ${item.unit}</td>
-        <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${color}">${status}</span></td>
-      </tr>`;
+      return results.map(r=>{
+        let status='N/A';let color='var(--t3)';
+        if(r.mrlRaw!=='—'&&item.found!==''){
+          if(r.mrlRaw==='ND'||r.mrlRaw==='Not Detected'){
+            status=(!item.found||found===0)?'PASS':'FAIL';
+          } else if(!isNaN(parseFloat(r.mrlRaw))){
+            status=found<=parseFloat(r.mrlRaw)?'PASS':'FAIL';
+          }
+          color=status==='PASS'?'var(--green)':'var(--red)';
+        }
+        return `<tr style="border-bottom:1px solid var(--bd)">
+          <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}</td>
+          <td style="padding:8px 12px;font-size:12px;color:var(--blue)">${r.std}</td>
+          <td style="padding:8px 12px;font-size:12px;color:var(--t2)">${r.prod}</td>
+          <td style="padding:8px 12px;font-size:13px;color:var(--t2);text-align:right">${r.mrlRaw}</td>
+          <td style="padding:8px 12px;font-size:13px;text-align:right">${item.found||'—'}</td>
+          <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${color}">${status}</span></td>
+        </tr>`;
+      }).join('');
     }).join('');
-    const pass=this._quickItems.filter(item=>{
-      const found=parseFloat(item.found);const mrlRaw=item.mrl;
-      if(mrlRaw==='ND'||mrlRaw==='Not Detected')return !item.found||found===0;
-      if(!isNaN(parseFloat(mrlRaw))&&item.found!=='')return found<=parseFloat(mrlRaw);
-      return false;
-    }).length;
-    const total=this._quickItems.length;
-    const allPass=pass===total;
+    const allRows=this._quickItems.flatMap(item=>{
+      const found=parseFloat(item.found);
+      const subData=wDATA.find(d=>d.name===item.sub);
+      const allMrls=[];
+      if(std&&prod){
+        allMrls.push(subData?.std_mrls?.[std]?.[prod]||'—');
+      } else {
+        Object.values(subData?.std_mrls||{}).forEach(prods=>Object.values(prods).forEach(v=>allMrls.push(v)));
+      }
+      return allMrls.map(mrlRaw=>{
+        if(mrlRaw==='—'||item.found==='')return null;
+        if(mrlRaw==='ND'||mrlRaw==='Not Detected')return (!item.found||found===0);
+        if(!isNaN(parseFloat(mrlRaw)))return found<=parseFloat(mrlRaw);
+        return null;
+      }).filter(x=>x!==null);
+    });
+    const pass=allRows.filter(Boolean).length;
+    const total=allRows.length;
+    const allPass=total>0&&pass===total;
+    const titleRow=`<tr style="background:#E8EDF5"><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สาร</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">มาตรฐาน</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สินค้า</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">เกณฑ์</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th><th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th></tr>`;
     document.getElementById('t2c-res').innerHTML=`
       <div style="margin-top:16px;border:2px solid ${allPass?'var(--green)':'var(--red)'};border-radius:var(--rl2);overflow:hidden">
         <div style="background:${allPass?'#F0FDF4':'#FEF2F2'};padding:12px 16px;display:flex;align-items:center;gap:10px">
@@ -1679,18 +1720,10 @@ const t2={
             <div style="font-weight:800;font-size:15px;color:${allPass?'var(--green)':'var(--red)'}">
               ${allPass?'ผ่านทุกมาตรฐาน':'พบการเกินมาตรฐาน'}
             </div>
-            <div style="font-size:12px;color:var(--t2)">${this.stdC} · ${this.prodC} · ผ่าน ${pass}/${total} รายการ</div>
+            <div style="font-size:12px;color:var(--t2)">ผ่าน ${pass}/${total} รายการ${std?' · '+std:''}${prod?' · '+prod:''}</div>
           </div>
         </div>
-        <table style="width:100%;border-collapse:collapse">
-          <thead><tr style="background:#E8EDF5">
-            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">สาร</th>
-            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:left">เกณฑ์</th>
-            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th>
-            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
+        <table style="width:100%;border-collapse:collapse"><thead>${titleRow}</thead><tbody>${rows}</tbody></table>
       </div>`;
   },
   _renderTableC(subs){
