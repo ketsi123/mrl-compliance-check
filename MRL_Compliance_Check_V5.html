@@ -1334,7 +1334,7 @@ const t1={
     if(!q){dd.style.display='none';return;}
     const ql=q.toLowerCase();
     const subMatches=wDATA.filter(d=>d.name.toLowerCase().includes(ql)).slice(0,10);
-    const stdMatches=wSTD.filter(s=>(s.name||'').toLowerCase().includes(ql)||(s.label||'').toLowerCase().includes(ql)).slice(0,5);
+    const stdMatches=Object.values(wSTD).filter(s=>(s.name||'').toLowerCase().includes(ql)||(s.label||'').toLowerCase().includes(ql)).slice(0,5);
     if(!subMatches.length&&!stdMatches.length){dd.style.display='none';return;}
     let html='';
     if(subMatches.length){
