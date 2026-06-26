@@ -1764,8 +1764,8 @@ const t2={
       (!this._resFilterStds.size||this._resFilterStds.has(r.std))&&
       (!this._resFilterProds.size||this._resFilterProds.has(r.prod))
     );
-    const stdList=[...new Set(data.map(r=>r.std))].sort();
-    const prodList=[...new Set(data.map(r=>r.prod))].sort();
+    const stdList=[...new Set(filtered.map(r=>r.std))].sort();
+    const prodList=[...new Set(filtered.map(r=>r.prod))].filter(p=>p!=='—').sort();
     const mkDD=(id,vals,selSet)=>{
       const active=selSet.size>0;
       return `<div style="position:relative;display:inline-block">
