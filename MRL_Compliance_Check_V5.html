@@ -152,8 +152,13 @@ body{font-family:var(--font);background:#E8EDF5;color:var(--tx);min-height:100vh
 .pb.sel-Poultry{background:#FFF0F6;border-color:#EC4899;color:#9D174D;box-shadow:0 0 0 3px rgba(236,72,153,.15)}
 .pb.sel-Shrimp{background:#F0FDFA;border-color:#14B8A6;color:#0F766E;box-shadow:0 0 0 3px rgba(20,184,166,.15)}
 .pb.sel-all{background:linear-gradient(135deg,#FFF7ED,#F0FDFA);border-color:var(--bd2);color:var(--tx);font-weight:800}
-.pb.has-match{border-color:var(--blue)!important;background:var(--bl)!important;color:var(--blue)!important}
+.pb.has-match{border-color:var(--blue);background:var(--bl);color:var(--blue)}
 .pb.no-match{opacity:.2}
+.pb.sel-Pork.has-match{background:#FFF7ED;border-color:#F97316;color:#C2410C;box-shadow:0 0 0 3px rgba(249,115,22,.35)}
+.pb.sel-Egg.has-match{background:#F0FDF4;border-color:#22C55E;color:#15803D;box-shadow:0 0 0 3px rgba(34,197,94,.35)}
+.pb.sel-Chicken.has-match{background:#EFF6FF;border-color:#3B82F6;color:#1D4ED8;box-shadow:0 0 0 3px rgba(59,130,246,.35)}
+.pb.sel-Poultry.has-match{background:#FFF0F6;border-color:#EC4899;color:#9D174D;box-shadow:0 0 0 3px rgba(236,72,153,.35)}
+.pb.sel-Shrimp.has-match{background:#F0FDFA;border-color:#14B8A6;color:#0F766E;box-shadow:0 0 0 3px rgba(20,184,166,.35)}
 
 /* ════ STANDARD CHIPS ════ */
 .sgl{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
@@ -172,8 +177,10 @@ body{font-family:var(--font);background:#E8EDF5;color:var(--tx);min-height:100vh
 .sc.rel{border-color:var(--bd2);color:var(--tx)}
 .sc.sel{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.3)}
 .sc.dim{opacity:.18;pointer-events:none}
-.sc.std-match{border-color:var(--blue)!important;background:var(--bl)!important;color:var(--blue)!important;font-weight:700!important}
-.sc.std-dim{opacity:.12!important}
+.sc.std-match{border-color:var(--blue);background:var(--bl);color:var(--blue);font-weight:700}
+.sc.std-dim{opacity:.12}
+.sc.sel.std-match{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.45);font-weight:700}
+.sc.sel.std-dim{opacity:1}
 .ac{
   padding:6px 16px;border-radius:var(--rx);font-size:12px;font-weight:800;
   border:2px solid var(--blue);background:transparent;color:var(--blue);
