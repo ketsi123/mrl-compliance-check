@@ -3133,8 +3133,16 @@ const pub={
       'เลือกประเภท version ก่อน';
   },
   generateReleaseNote(){
-    const log=admin.auditLog||[];
-    if(!log.length)return 'Release note จะถูกสร้างอัตโนมัติจาก Audit Log\n(แก้ไขเพิ่มเติมได้)';
+    const allLog=admin.auditLog||[];
+    if(!allLog.length)return 'Release note จะถูกสร้างอัตโนมัติจาก Audit Log\n(แก้ไขเพิ่มเติมได้)';
+    // เอาเฉพาะ log หลัง publish ล่าสุด
+    const cur=this.getCurrent();
+    const lastPub=cur.publishedAt?new Date(cur.publishedAt).getTime():0;
+    const log=allLog.filter(e=>{
+      const ts=e.ts?new Date(e.ts).getTime():0;
+      return ts>lastPub;
+    });
+    if(!log.length)return 'ไม่มีการเปลี่ยนแปลงนับจาก publish ล่าสุด\n(แก้ไขข้อความได้ตามต้องการ)';
     const adds=[],updates=[],dels=[];
     log.forEach(e=>{
       if(e.type==='add')adds.push(e.data);
