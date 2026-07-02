@@ -1508,13 +1508,20 @@ const t1={
       const sc=item.segment==='Antibiotic'?'seg-ab':item.segment==='Pesticide'?'seg-pe':'seg-ot';
       const req=rt==='nd'?'<span class="rnd">ต้องตรวจไม่พบ</span>':'<span class="rml">มี MRL</span>';
       const hl=this.q?n=>n.replace(new RegExp(this.q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<span class="hl">${m}</span>`):n=>n;
-      const mStd='<div class="mc">'+entries.map(e=>`<div class="mr" style="padding:3px 0;border-bottom:1px solid var(--bd)"><span class="ms"><span style="font-size:13px">${EMOJI[e.prod]}</span> ${wSTD[e.std]?.label||e.std}</span></div>`).join('')+ '</div>';
-      const mVal='<div class="mc">'+entries.map(e=>{const d=e.isND?'ND':e.val;const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));const c=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2);text-align:right':'');return `<div class="mr" style="padding:3px 0;border-bottom:1px solid var(--bd);justify-content:flex-end"><span class="mv" style="${c}">${d}</span></div>`;}).join('')+ '</div>';
-      h+=`<tr>
-        <td><strong style="font-size:12.5px">${hl(item.name)}</strong><div class="grp">${item.group||''}</div></td>
-        <td><span class="${sc}">${item.segment}</span></td>
-        <td>${req}</td><td>${mStd}</td><td style="text-align:right;vertical-align:top">${mVal}</td>
-      </tr>`;
+      const n=entries.length;
+      entries.forEach((e,i)=>{
+        const sl=wSTD[e.std]?.label||e.std;
+        const d=e.isND?'ND':e.val;
+        const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));
+        const vs=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2)':'');
+        const top=i===0?'border-top:2px solid var(--bd);':'';
+        h+='<tr>';
+        if(i===0){h+=`<td rowspan="${n}" style="border-top:2px solid var(--bd)"><strong style="font-size:12.5px">${hl(item.name)}</strong><div class="grp">${item.group||''}</div></td>
+          <td rowspan="${n}" style="border-top:2px solid var(--bd)"><span class="${sc}">${item.segment}</span></td>
+          <td rowspan="${n}" style="border-top:2px solid var(--bd)">${req}</td>`;}
+        h+=`<td style="padding:6px 12px;border-left:1px solid var(--bd);${top}"><span class="ms"><span style="font-size:13px">${EMOJI[e.prod]||''}</span> ${sl}</span></td>
+          <td style="padding:6px 12px;text-align:right;vertical-align:top;border-left:1px solid var(--bd);${top}"><span class="mv" style="${vs}">${d}</span></td></tr>`;
+      });
     }
     if(!rows.length)h+='<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--t3)">ไม่พบรายการ</td></tr>';
     h+='</tbody></table></div>';
@@ -1561,11 +1568,20 @@ const t1={
     const hl=n=>n.replace(new RegExp(this.q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<span class="hl">${m}</span>`);
     for(const{item,entries,isStdMatch} of rows){
       const sc=item.segment==='Antibiotic'?'seg-ab':item.segment==='Pesticide'?'seg-pe':'seg-ot';
-      const mStd='<div class="mc">'+entries.map(e=>{const sl=wSTD[e.std]?.label||e.std;const sd=isStdMatch&&matchStds.includes(e.std)?`<span class="hl">${sl}</span>`:sl;return `<div class="mr" style="padding:3px 0;border-bottom:1px solid var(--bd)"><span class="ms"><span style="font-size:13px">${EMOJI[e.prod]||''}</span> ${sd}</span></div>`;}).join('')+ '</div>';
-      const mVal='<div class="mc">'+entries.map(e=>{const d=e.isND?'ND':e.val;const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));const c=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2);text-align:right':'');return `<div class="mr" style="padding:3px 0;border-bottom:1px solid var(--bd);justify-content:flex-end"><span class="mv" style="${c}">${d}</span></div>`;}).join('')+ '</div>';
-      h+=`<tr><td><strong>${hl(item.name)}</strong><div class="grp">${item.group||''}</div></td>
-        <td><span class="${sc}">${item.segment}</span></td>
-        <td>${mStd}</td><td style="text-align:right;vertical-align:top">${mVal}</td></tr>`;
+      const n=entries.length;
+      entries.forEach((e,i)=>{
+        const sl=wSTD[e.std]?.label||e.std;
+        const sd=isStdMatch&&matchStds.includes(e.std)?`<span class="hl">${sl}</span>`:sl;
+        const d=e.isND?'ND':e.val;
+        const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));
+        const vs=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2)':'');
+        const top=i===0?'border-top:2px solid var(--bd);':'';
+        h+='<tr>';
+        if(i===0){h+=`<td rowspan="${n}" style="border-top:2px solid var(--bd)"><strong>${hl(item.name)}</strong><div class="grp">${item.group||''}</div></td>
+          <td rowspan="${n}" style="border-top:2px solid var(--bd)"><span class="${sc}">${item.segment}</span></td>`;}
+        h+=`<td style="padding:6px 12px;border-left:1px solid var(--bd);${top}"><span class="ms"><span style="font-size:13px">${EMOJI[e.prod]||''}</span> ${sd}</span></td>
+          <td style="padding:6px 12px;text-align:right;vertical-align:top;border-left:1px solid var(--bd);${top}"><span class="mv" style="${vs}">${d}</span></td></tr>`;
+      });
     }
     h+='</tbody></table></div>';
     area.innerHTML=h;this.uClr();
