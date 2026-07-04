@@ -1472,12 +1472,12 @@ const t1={
     const tl=this.allStd?`ALL (${[...relStds].length} มาตรฐาน)`:stds.map(s=>wSTD[s]?.label||s).join(', ');
     const prodBadges=prods.map(p=>`${EMOJI[p]} ${p}`).join(' + ');
 
-    const nameDd=['ALL',...new Set(allRows.map(r=>r.item.name))].map(v=>`<div class="ddi${this.name===v?' on':''}" onclick="t1.name='${v.replace(/'/g,"\\'")}';closeDd('dd-nm');setTimeout(()=>t1.render(),0)"><div class="ddc">${this.name===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
+    const nameDd=['ALL',...new Set(allRows.map(r=>r.item.name))].map(v=>`<div class="ddi${this.name===v?' on':''}" onclick="t1.name='${v.replace(/'/g,"\\'")}';closeDd('dd-nm');t1.render()"><div class="ddc">${this.name===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
     const rowsForSeg=allRows.filter(r=>this.name==='ALL'||r.item.name===this.name);
     const availSegs=new Set(rowsForSeg.map(r=>r.item.segment));
-    const segDd=['ALL',...['Antibiotic','Pesticide','Other'].filter(v=>availSegs.has(v))].map(v=>`<div class="ddi${this.seg===v?' on':''}" onclick="t1.seg='${v}';closeDd('dd-sg');setTimeout(()=>t1.render(),0)"><div class="ddc">${this.seg===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
+    const segDd=['ALL',...['Antibiotic','Pesticide','Other'].filter(v=>availSegs.has(v))].map(v=>`<div class="ddi${this.seg===v?' on':''}" onclick="t1.seg='${v}';closeDd('dd-sg');t1.render()"><div class="ddc">${this.seg===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
     const availReqs=new Set(rowsForSeg.map(r=>r.rt));
-    const reqDd=[['ALL','ทั้งหมด'],['mrl','มี MRL'],['nd','ต้องตรวจไม่พบ']].filter(([v])=>v==='ALL'||availReqs.has(v)).map(([v,l])=>`<div class="ddi${this.req===v?' on':''}" onclick="t1.req='${v}';closeDd('dd-rq');setTimeout(()=>t1.render(),0)"><div class="ddc">${this.req===v?'✓':''}</div>${l}</div>`).join('');
+    const reqDd=[['ALL','ทั้งหมด'],['mrl','มี MRL'],['nd','ต้องตรวจไม่พบ']].filter(([v])=>v==='ALL'||availReqs.has(v)).map(([v,l])=>`<div class="ddi${this.req===v?' on':''}" onclick="t1.req='${v}';closeDd('dd-rq');t1.render()"><div class="ddc">${this.req===v?'✓':''}</div>${l}</div>`).join('');
 
     let h=`<div class="tbl-header">
       <div><div class="tbl-title">${prodBadges} × ${tl} — ${rows.length} รายการ</div></div>
@@ -1490,15 +1490,15 @@ const t1={
     <div class="tw"><table><thead><tr>
       <th class="filt${this.name!=='ALL'?' active':''}" style="width:30%" onclick="openDd('dd-nm',event)">
         <div class="thi"><span class="thl">ชื่อสาร</span><span class="tha">▾</span></div>
-        <div class="dd" id="dd-nm" onclick="event.stopPropagation()">${nameDd}<div class="ddf"><button onclick="t1.name='ALL';closeDd('dd-nm');setTimeout(()=>t1.render(),0)">ล้าง</button></div></div>
+        <div class="dd" id="dd-nm" onclick="event.stopPropagation()">${nameDd}<div class="ddf"><button onclick="t1.name='ALL';closeDd('dd-nm');t1.render()">ล้าง</button></div></div>
       </th>
       <th class="filt${this.seg!=='ALL'?' active':''}" style="width:17%" onclick="openDd('dd-sg',event)">
         <div class="thi"><span class="thl">กลุ่ม</span><span class="tha">▾</span></div>
-        <div class="dd" id="dd-sg" onclick="event.stopPropagation()">${segDd}<div class="ddf"><button onclick="t1.seg='ALL';closeDd('dd-sg');setTimeout(()=>t1.render(),0)">ล้าง</button></div></div>
+        <div class="dd" id="dd-sg" onclick="event.stopPropagation()">${segDd}<div class="ddf"><button onclick="t1.seg='ALL';closeDd('dd-sg');t1.render()">ล้าง</button></div></div>
       </th>
       <th class="filt${this.req!=='ALL'?' active':''}" style="width:13%" onclick="openDd('dd-rq',event)">
         <div class="thi"><span class="thl">ข้อกำหนด</span><span class="tha">▾</span></div>
-        <div class="dd" id="dd-rq" onclick="event.stopPropagation()">${reqDd}<div class="ddf"><button onclick="t1.req='ALL';closeDd('dd-rq');setTimeout(()=>t1.render(),0)">ล้าง</button></div></div>
+        <div class="dd" id="dd-rq" onclick="event.stopPropagation()">${reqDd}<div class="ddf"><button onclick="t1.req='ALL';closeDd('dd-rq');t1.render()">ล้าง</button></div></div>
       </th>
       <th style="width:38%">สินค้า × มาตรฐาน</th>
       <th style="width:9%;text-align:right;white-space:nowrap">MRL (ug/kg)</th>
