@@ -1144,6 +1144,23 @@ async function gasCall(body){
     return {error: e.message};
   }
 }
+function keepBaseZeroMrls(data){
+  const rows=JSON.parse(JSON.stringify(data||[]));
+  const byName=new Map(rows.map(d=>[d.name,d]));
+  for(const base of DATA){
+    const item=byName.get(base.name);if(!item)continue;
+    if(!item.std_mrls)item.std_mrls={};
+    for(const[std,prods] of Object.entries(base.std_mrls||{})){
+      for(const[prod,val] of Object.entries(prods||{})){
+        if(!(val===0||val==='0'))continue;
+        if(!item.std_mrls[std])item.std_mrls[std]={};
+        const cur=item.std_mrls[std][prod];
+        if(cur==null||cur==='')item.std_mrls[std][prod]=val;
+      }
+    }
+  }
+  return rows;
+}
 async function autoSyncFromSheet(){
   const url=getGasUrl();if(!url)return;
   const badge=document.getElementById('db-ver-badge');
@@ -1152,7 +1169,7 @@ async function autoSyncFromSheet(){
     const res=await gasCall({action:'read'});
     if(!res||res.error){if(badge)badge.textContent=badge._origText||'📦 Draft';return;}
     if(res.DATA&&res.DATA.length>0){
-      wDATA=res.DATA;wSTD=res.STD_META;
+      wDATA=keepBaseZeroMrls(res.DATA);wSTD=res.STD_META;
       admin.updateStats&&admin.updateStats();
       admin.fillSubList&&admin.fillSubList();
       admin.fillGrpList&&admin.fillGrpList();
@@ -1172,7 +1189,7 @@ async function syncFromSheet(){
   const res=await gasCall({action:'read'});
   if(!res||res.error){showToast('❌ ดึงข้อมูลไม่ได้: '+(res?.error||'unknown'),'warn','❌');return;}
   if(!res.DATA||res.DATA.length===0){showToast('⚠️ Sheets ยังว่างอยู่','warn','☁️');return;}
-  wDATA=res.DATA;wSTD=res.STD_META;
+  wDATA=keepBaseZeroMrls(res.DATA);wSTD=res.STD_META;
   admin.updateStats();admin.fillSubList();admin.fillGrpList();admin.fillProdList();admin.fillStdSel();
   t1.render();xFilter.renderFiltered();
   showToast('✅ ซิงค์สำเร็จ: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน','info','✅');
