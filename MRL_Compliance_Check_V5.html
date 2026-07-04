@@ -1517,7 +1517,7 @@ const t1={
       const n=entries.length;
       entries.forEach((e,i)=>{
         const sl=wSTD[e.std]?.label||e.std;
-        const d=e.isND?'ND':e.val;
+        const d=e.isND?(e.val===0?'0':'ND'):e.val;
         const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));
         const vs=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2)':'');
         const top=i===0?'border-top:2px solid var(--bd);':'';
@@ -1578,7 +1578,7 @@ const t1={
       entries.forEach((e,i)=>{
         const sl=wSTD[e.std]?.label||e.std;
         const sd=isStdMatch&&matchStds.includes(e.std)?`<span class="hl">${sl}</span>`:sl;
-        const d=e.isND?'ND':e.val;
+        const d=e.isND?(e.val===0?'0':'ND'):e.val;
         const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));
         const vs=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2)':'');
         const top=i===0?'border-top:2px solid var(--bd);':'';
@@ -1597,7 +1597,7 @@ const t1={
     const rows=this._exportRows||[];
     if(!rows.length||typeof XLSX==='undefined'){alert('ไม่มีข้อมูล');return;}
     const ws=[[ 'ชื่อสาร','Segment','กลุ่ม','ข้อกำหนด','สินค้า','มาตรฐาน','MRL (ug/kg)']];
-    for(const{item,entries,rt} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'',i===0?(rt==='nd'?'ต้องตรวจไม่พบ':'มี MRL'):'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?'ND':e.val]));
+    for(const{item,entries,rt} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'',i===0?(rt==='nd'?'ต้องตรวจไม่พบ':'มี MRL'):'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?(e.val===0?'0':'ND'):e.val]));
     const s=XLSX.utils.aoa_to_sheet(ws);s['!cols']=[{wch:40},{wch:12},{wch:22},{wch:18},{wch:12},{wch:20},{wch:12}];
     const wb=XLSX.utils.book_new();const m=this._exportMeta||{};
     const pStr=(m.prods||[]).join('+').replace(/[\/:*?\[\]]/g,'');
@@ -1608,7 +1608,7 @@ const t1={
     const rows=this._exportRowsSearch||[];
     if(!rows.length||typeof XLSX==='undefined'){alert('ไม่มีข้อมูล');return;}
     const ws=[['ชื่อสาร','Segment','กลุ่ม','สินค้า','มาตรฐาน','MRL (ug/kg)']];
-    for(const{item,entries} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?'ND':e.val]));
+    for(const{item,entries} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?(e.val===0?'0':'ND'):e.val]));
     const s=XLSX.utils.aoa_to_sheet(ws);s['!cols']=[{wch:40},{wch:12},{wch:22},{wch:14},{wch:20},{wch:12}];
     const wb=XLSX.utils.book_new();const q=(this.q||'search').replace(/[\/:*?\[\]]/g,'').slice(0,20);
     XLSX.utils.book_append_sheet(wb,s,('MRL_'+q).slice(0,31));
