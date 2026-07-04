@@ -1471,7 +1471,7 @@ const t1={
     const relStds=new Set();for(const p of prods){for(const s of getRelStds(p))relStds.add(s);}
     const stds=this.allStd?[...relStds]:[...this.stds];
 
-    let allRows=[];
+    let baseRows=[];
     for(const item of wDATA){
       const entries=[];
       for(const p of prods) for(const s of stds){
@@ -1480,12 +1480,16 @@ const t1={
       }
       if(!entries.length)continue;
       const rt=entries.some(e=>e.isND)?'nd':'mrl';
-      if(this.seg!=='ALL'&&item.segment!==this.seg)continue;
-      if(this.req==='mrl'&&rt!=='mrl')continue;
-      if(this.req==='nd'&&rt!=='nd')continue;
       if(this.q&&!item.name.toLowerCase().includes(this.q.toLowerCase())&&!(item.group||''). toLowerCase().includes(this.q.toLowerCase())&&!(item.aliases||[]).some(a=>a.toLowerCase().includes(this.q.toLowerCase())))continue;
-      allRows.push({item,entries,rt});
+      baseRows.push({item,entries,rt});
     }
+    baseRows.sort((a,b)=>(a.rt==='nd'?0:1)-(b.rt==='nd'?0:1)||a.item.name.localeCompare(b.item.name));
+    let allRows=baseRows.filter(r=>{
+      if(this.seg!=='ALL'&&r.item.segment!==this.seg)return false;
+      if(this.req==='mrl'&&r.rt!=='mrl')return false;
+      if(this.req==='nd'&&r.rt!=='nd')return false;
+      return true;
+    });
     allRows.sort((a,b)=>(a.rt==='nd'?0:1)-(b.rt==='nd'?0:1)||a.item.name.localeCompare(b.item.name));
     const rows=this.name==='ALL'?allRows:allRows.filter(r=>r.item.name===this.name);
 
@@ -1495,11 +1499,13 @@ const t1={
     const tl=this.allStd?`ALL (${[...relStds].length} มาตรฐาน)`:stds.map(s=>wSTD[s]?.label||s).join(', ');
     const prodBadges=prods.map(p=>`${EMOJI[p]} ${p}`).join(' + ');
 
-    const nameDd=['ALL',...new Set(allRows.map(r=>r.item.name))].map(v=>`<div class="ddi${this.name===v?' on':''}" onclick="t1.name='${v.replace(/'/g,"\\'")}';closeDd('dd-nm');t1.render()"><div class="ddc">${this.name===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
-    const rowsForSeg=allRows.filter(r=>this.name==='ALL'||r.item.name===this.name);
+    const rowsForName=baseRows.filter(r=>(this.seg==='ALL'||r.item.segment===this.seg)&&(this.req==='ALL'||r.rt===this.req));
+    const nameDd=['ALL',...new Set(rowsForName.map(r=>r.item.name))].map(v=>`<div class="ddi${this.name===v?' on':''}" onclick="t1.name='${v.replace(/'/g,"\\'")}';closeDd('dd-nm');t1.render()"><div class="ddc">${this.name===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
+    const rowsForSeg=baseRows.filter(r=>(this.name==='ALL'||r.item.name===this.name)&&(this.req==='ALL'||r.rt===this.req));
     const availSegs=new Set(rowsForSeg.map(r=>r.item.segment));
     const segDd=['ALL',...['Antibiotic','Pesticide','Other'].filter(v=>availSegs.has(v))].map(v=>`<div class="ddi${this.seg===v?' on':''}" onclick="t1.seg='${v}';closeDd('dd-sg');t1.render()"><div class="ddc">${this.seg===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
-    const availReqs=new Set(rowsForSeg.map(r=>r.rt));
+    const rowsForReq=baseRows.filter(r=>(this.name==='ALL'||r.item.name===this.name)&&(this.seg==='ALL'||r.item.segment===this.seg));
+    const availReqs=new Set(rowsForReq.map(r=>r.rt));
     const reqDd=[['ALL','ทั้งหมด'],['mrl','มี MRL'],['nd','ต้องตรวจไม่พบ']].filter(([v])=>v==='ALL'||availReqs.has(v)).map(([v,l])=>`<div class="ddi${this.req===v?' on':''}" onclick="t1.req='${v}';closeDd('dd-rq');t1.render()"><div class="ddc">${this.req===v?'✓':''}</div>${l}</div>`).join('');
 
     let h=`<div class="tbl-header">
