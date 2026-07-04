@@ -1232,12 +1232,12 @@ window.addEventListener('beforeunload',(e)=>{
 function getRelStds(prod){
   const r=new Set();
   for(const d of wDATA) for(const[s,m] of Object.entries(d.std_mrls||{}))
-    if(m[prod]) r.add(s);
+    if(prod in m) r.add(s);
   return r;
 }
 function getMRL(item,prod,std){
   const m=item.std_mrls[std];if(!m)return null;
-  return m[prod]||null;
+  return (prod in m)?m[prod]:null;
 }
 function buildStds(areaId,allId,cbStd,cbAll,prods){
   const area=document.getElementById(areaId);
@@ -1246,7 +1246,7 @@ function buildStds(areaId,allId,cbStd,cbAll,prods){
   }
   const stdProds={};
   for(const d of wDATA) for(const[s,m] of Object.entries(d.std_mrls||{}))
-    for(const p of prods) if(m[p]){
+    for(const p of prods) if(p in m){
       if(!stdProds[s])stdProds[s]=new Set(); stdProds[s].add(p);
     }
   const groups={};
@@ -1453,7 +1453,7 @@ const t1={
       const entries=[];
       for(const p of prods) for(const s of stds){
         const v=getMRL(item,p,s);if(!v)continue;
-        entries.push({prod:p,std:s,val:v,isND:v==='0'||v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'});
+        entries.push({prod:p,std:s,val:v,isND:v===0||v==='0'||v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'});
       }
       if(!entries.length)continue;
       const rt=entries.some(e=>e.isND)?'nd':'mrl';
@@ -1472,12 +1472,12 @@ const t1={
     const tl=this.allStd?`ALL (${[...relStds].length} มาตรฐาน)`:stds.map(s=>wSTD[s]?.label||s).join(', ');
     const prodBadges=prods.map(p=>`${EMOJI[p]} ${p}`).join(' + ');
 
-    const nameDd=['ALL',...new Set(allRows.map(r=>r.item.name))].map(v=>`<div class="ddi${this.name===v?' on':''}" onclick="t1.name='${v.replace(/'/g,"\\'")}';t1.render();closeDd('dd-nm')"><div class="ddc">${this.name===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
+    const nameDd=['ALL',...new Set(allRows.map(r=>r.item.name))].map(v=>`<div class="ddi${this.name===v?' on':''}" onclick="t1.name='${v.replace(/'/g,"\\'")}';closeDd('dd-nm');setTimeout(()=>t1.render(),0)"><div class="ddc">${this.name===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
     const rowsForSeg=allRows.filter(r=>this.name==='ALL'||r.item.name===this.name);
     const availSegs=new Set(rowsForSeg.map(r=>r.item.segment));
-    const segDd=['ALL',...['Antibiotic','Pesticide','Other'].filter(v=>availSegs.has(v))].map(v=>`<div class="ddi${this.seg===v?' on':''}" onclick="t1.seg='${v}';t1.render();closeDd('dd-sg')"><div class="ddc">${this.seg===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
+    const segDd=['ALL',...['Antibiotic','Pesticide','Other'].filter(v=>availSegs.has(v))].map(v=>`<div class="ddi${this.seg===v?' on':''}" onclick="t1.seg='${v}';closeDd('dd-sg');setTimeout(()=>t1.render(),0)"><div class="ddc">${this.seg===v?'✓':''}</div>${v==='ALL'?'ทั้งหมด':v}</div>`).join('');
     const availReqs=new Set(rowsForSeg.map(r=>r.rt));
-    const reqDd=[['ALL','ทั้งหมด'],['mrl','มี MRL'],['nd','ต้องตรวจไม่พบ']].filter(([v])=>v==='ALL'||availReqs.has(v)).map(([v,l])=>`<div class="ddi${this.req===v?' on':''}" onclick="t1.req='${v}';t1.render();closeDd('dd-rq')"><div class="ddc">${this.req===v?'✓':''}</div>${l}</div>`).join('');
+    const reqDd=[['ALL','ทั้งหมด'],['mrl','มี MRL'],['nd','ต้องตรวจไม่พบ']].filter(([v])=>v==='ALL'||availReqs.has(v)).map(([v,l])=>`<div class="ddi${this.req===v?' on':''}" onclick="t1.req='${v}';closeDd('dd-rq');setTimeout(()=>t1.render(),0)"><div class="ddc">${this.req===v?'✓':''}</div>${l}</div>`).join('');
 
     let h=`<div class="tbl-header">
       <div><div class="tbl-title">${prodBadges} × ${tl} — ${rows.length} รายการ</div></div>
@@ -1490,15 +1490,15 @@ const t1={
     <div class="tw"><table><thead><tr>
       <th class="filt${this.name!=='ALL'?' active':''}" style="width:30%" onclick="openDd('dd-nm',event)">
         <div class="thi"><span class="thl">ชื่อสาร</span><span class="tha">▾</span></div>
-        <div class="dd" id="dd-nm" onclick="event.stopPropagation()">${nameDd}<div class="ddf"><button onclick="t1.name='ALL';t1.render();closeDd('dd-nm')">ล้าง</button></div></div>
+        <div class="dd" id="dd-nm" onclick="event.stopPropagation()">${nameDd}<div class="ddf"><button onclick="t1.name='ALL';closeDd('dd-nm');setTimeout(()=>t1.render(),0)">ล้าง</button></div></div>
       </th>
       <th class="filt${this.seg!=='ALL'?' active':''}" style="width:17%" onclick="openDd('dd-sg',event)">
         <div class="thi"><span class="thl">กลุ่ม</span><span class="tha">▾</span></div>
-        <div class="dd" id="dd-sg" onclick="event.stopPropagation()">${segDd}<div class="ddf"><button onclick="t1.seg='ALL';t1.render();closeDd('dd-sg')">ล้าง</button></div></div>
+        <div class="dd" id="dd-sg" onclick="event.stopPropagation()">${segDd}<div class="ddf"><button onclick="t1.seg='ALL';closeDd('dd-sg');setTimeout(()=>t1.render(),0)">ล้าง</button></div></div>
       </th>
       <th class="filt${this.req!=='ALL'?' active':''}" style="width:13%" onclick="openDd('dd-rq',event)">
         <div class="thi"><span class="thl">ข้อกำหนด</span><span class="tha">▾</span></div>
-        <div class="dd" id="dd-rq" onclick="event.stopPropagation()">${reqDd}<div class="ddf"><button onclick="t1.req='ALL';t1.render();closeDd('dd-rq')">ล้าง</button></div></div>
+        <div class="dd" id="dd-rq" onclick="event.stopPropagation()">${reqDd}<div class="ddf"><button onclick="t1.req='ALL';closeDd('dd-rq');setTimeout(()=>t1.render(),0)">ล้าง</button></div></div>
       </th>
       <th style="width:38%">สินค้า × มาตรฐาน</th>
       <th style="width:9%;text-align:right;white-space:nowrap">MRL (ug/kg)</th>
@@ -1536,7 +1536,7 @@ const t1={
     if(isStdQ){
       for(const item of wDATA){
         const entries=[];
-        for(const std of matchStds){const m=item.std_mrls[std];if(!m)continue;for(const[p,v] of Object.entries(m)){entries.push({prod:p,std,val:v,isND:v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'||v==='0'});}}
+        for(const std of matchStds){const m=item.std_mrls[std];if(!m)continue;for(const[p,v] of Object.entries(m)){entries.push({prod:p,std,val:v,isND:v===0||v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'||v==='0'});}}
         if(entries.length)rows.push({item,entries,isStdMatch:true});
       }
     }
@@ -1545,7 +1545,7 @@ const t1={
     for(const item of matchSub){
       if(existing.has(item.name))continue;
       const entries=[];
-      for(const[std,prods] of Object.entries(item.std_mrls||{}))for(const[p,v] of Object.entries(prods)){entries.push({prod:p,std,val:v,isND:v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'||v==='0'});}
+      for(const[std,prods] of Object.entries(item.std_mrls||{}))for(const[p,v] of Object.entries(prods)){entries.push({prod:p,std,val:v,isND:v===0||v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'||v==='0'});}
       if(entries.length)rows.push({item,entries,isStdMatch:false});
     }
     rows.sort((a,b)=>a.item.name.localeCompare(b.item.name));
