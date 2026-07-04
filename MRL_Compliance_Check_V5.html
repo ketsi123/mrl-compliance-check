@@ -1231,7 +1231,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   pub.init();
   xFilter.init();
   // Auto-sync จาก Google Sheets
-  autoSyncFromSheet();
+  // Auto-sync disabled: keep the bundled HTML data as the initial table source.
   // Default mode C
   setTimeout(()=>t2.setMode('C'),0);
   // Click-outside ปิด dropdown Tab 0
