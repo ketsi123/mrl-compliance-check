@@ -1188,8 +1188,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const seg=document.getElementById('admin-sub-seg');if(seg)seg.value='';
   pub.init();
   xFilter.init();
-  // Auto-sync จาก Google Sheets
-  // Auto-sync disabled: keep the bundled HTML data as the initial table source.
+  // Auto-sync จาก Google Sheets (ให้ข้อมูลตอนเปิดหน้าเป็นข้อมูลล่าสุดจาก Sheets เสมอ)
+  autoSyncFromSheet();
   // Default mode C
   setTimeout(()=>t2.setMode('C'),0);
   // Click-outside ปิด dropdown Tab 0
