@@ -864,7 +864,7 @@ tr:hover td{background:#FAFCFF}
             <div style="position:relative">
               <input class="admin-input" id="admin-std-sel-inp" autocomplete="off"
                 placeholder="-- สร้างมาตรฐานใหม่ --"
-                oninput="admin.filterStdDd(this.value)"
+                oninput="admin.filterStdDd(this.value)" onfocus="admin.filterStdDd(this.value)"
                 onkeydown="if(event.key==='Escape'){document.getElementById('admin-std-dd').style.display='none';}">
               <div id="admin-std-dd" style="display:none;position:absolute;left:0;right:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:8px;box-shadow:0 8px 24px rgba(37,99,235,.18);max-height:240px;overflow-y:auto;margin-top:3px"></div>
             </div>
@@ -1188,8 +1188,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   const seg=document.getElementById('admin-sub-seg');if(seg)seg.value='';
   pub.init();
   xFilter.init();
-  // Auto-sync จาก Google Sheets (ให้ข้อมูลตอนเปิดหน้าเป็นข้อมูลล่าสุดจาก Sheets เสมอ)
-  autoSyncFromSheet();
+  // Auto-sync จาก Google Sheets
+  // Auto-sync disabled: keep the bundled HTML data as the initial table source.
   // Default mode C
   setTimeout(()=>t2.setMode('C'),0);
   // Click-outside ปิด dropdown Tab 0
@@ -2337,21 +2337,29 @@ const admin={
     document.getElementById('ac-lim').textContent=lim;
   },
   fillStdSel(){
-    // legacy select (ไม่มีแล้ว) — ใช้ filterStdDd แทน
-    this.filterStdDd('');
+    // build dropdown content แต่ไม่เปิด — เปิดเมื่อ user คลิก/พิมพ์เท่านั้น
+    this.filterStdDd('',true);
   },
-  filterStdDd(q){
+  filterStdDd(q,keepHidden){
     const dd=document.getElementById('admin-std-dd');
     if(!dd)return;
     const ql=(q||'').toLowerCase();
-    const keys=Object.keys(wSTD).filter(s=>!ql||s.toLowerCase().includes(ql));
+    // ดึงจาก wSTD (sync จาก GAS) + มาตรฐานที่มีใน wDATA แต่ไม่อยู่ใน wSTD
+    const fromData=new Set();
+    wDATA.forEach(d=>{for(const s of Object.keys(d.std_mrls||{}))fromData.add(s);});
+    const allKeys=new Set([...Object.keys(wSTD),...fromData]);
+    const keys=[...allKeys].filter(s=>!ql||s.toLowerCase().includes(ql)).sort();
     let html='<div class="admin-std-dd-item" data-val="" style="padding:9px 14px;cursor:pointer;font-size:13px;color:var(--t3);border-bottom:1px solid #F1F5F9">-- สร้างมาตรฐานใหม่ --</div>';
-    html+=keys.map(s=>`<div class="admin-std-dd-item" data-val="${s.replace(/"/g,'&quot;')}" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9">${s}</div>`).join('');
+    html+=keys.map(s=>{
+      const inSheet=wSTD[s]?'':'<span style="color:#F59E0B;font-size:10px;margin-left:6px">(ฝังใน HTML)</span>';
+      return `<div class="admin-std-dd-item" data-val="${s.replace(/"/g,'&quot;')}" style="padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between"><span>${wSTD[s]?.label||s}${inSheet}</span><button onclick="event.stopPropagation();admin.deleteStd('${s.replace(/'/g,"\\'")}')" style="background:none;border:none;color:#DC2626;cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;opacity:0.6" onmouseover="this.style.opacity=1;this.style.background='#FEE2E2'" onmouseout="this.style.opacity=0.6;this.style.background='none'" title="ลบมาตรฐานนี้">✕</button></div>`;
+    }).join('');
     dd.innerHTML=html;
     dd.querySelectorAll('.admin-std-dd-item').forEach(el=>{
-      el.addEventListener('mouseover',()=>el.style.background='#EFF6FF');
+      el.addEventListener('mouseover',()=>{if(!el.style.background||el.style.background==='none')el.style.background='#EFF6FF';});
       el.addEventListener('mouseout',()=>el.style.background='');
-      el.addEventListener('click',()=>{
+      el.addEventListener('click',(e)=>{
+        if(e.target.tagName==='BUTTON')return;
         const v=el.dataset.val;
         const inp=document.getElementById('admin-std-sel-inp');
         if(inp)inp.value=v||'';
@@ -2359,7 +2367,29 @@ const admin={
         admin._pickStdVal(v);
       });
     });
-    dd.style.display=(keys.length||!ql)?'':'none';
+    if(keepHidden){dd.style.display='none';}
+    else{dd.style.display=(keys.length||!ql)?'':'none';}
+  },
+  deleteStd(stdName){
+    if(!confirm('ลบมาตรฐาน "'+stdName+'" ออกจากระบบ?\n\n⚠️ จะลบทั้งมาตรฐานและค่า MRL ที่เกี่ยวข้องทั้งหมด'))return;
+    // ลบออกจาก wSTD
+    if(wSTD[stdName]) delete wSTD[stdName];
+    // ลบ limits ที่ใช้มาตรฐานนี้ออกจาก wDATA
+    wDATA.forEach(d=>{if(d.std_mrls&&d.std_mrls[stdName]) delete d.std_mrls[stdName];});
+    // ลบออกจาก embedded STD_META ด้วย
+    if(typeof STD_META!=='undefined'&&STD_META[stdName]) delete STD_META[stdName];
+    // ลบออกจาก Sheets
+    const gasUrl=getGasUrl();
+    if(gasUrl){
+      gasCall({action:'deleteStandard',name:stdName}).then(r=>{
+        if(r?.ok) showToast('☁️ ลบมาตรฐาน '+stdName+' ออกจาก Sheets แล้ว','info','☁️');
+      });
+    }
+    // refresh UI
+    this.fillStdSel();this.updateStats();this.refreshPreview();this.saveToStorage();
+    t1.render&&t1.render();
+    showToast('ลบมาตรฐาน <strong>'+stdName+'</strong> แล้ว','warn','🗑️');
+    draftMgr.markDirty();
   },
   _pickStdVal(val){
     if(!val){
