@@ -576,6 +576,7 @@ tr:hover td{background:#FAFCFF}
     <div class="db-version-badge draft" id="db-ver-badge" title="Database version">📦 Draft</div>
     <span class="ak-lbl">🔑 API Key:</span>
     <input class="ak-inp" type="password" id="api-key" placeholder="sk-ant-api03-..." oninput="chkKey()">
+    <button id="api-test-btn" type="button" onclick="testClaudeKey()" style="border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.18);color:#fff;border-radius:7px;padding:5px 10px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">ทดสอบ Key</button>
     <div class="ak-ok" id="ak-ok">✓ พร้อมใช้งาน</div>
     <div class="ak-err" id="ak-err">⚠ Key ไม่ถูก</div>
   </div>
@@ -1172,6 +1173,43 @@ function swTab(i){
   if(fab)fab.classList.toggle('show',true);
   if(i===2&&document.getElementById('admin-app')?.style.display!=='none') xFilter.renderFiltered();
 }
+async function testClaudeKey(){
+  const k=document.getElementById('api-key').value.trim();
+  const btn=document.getElementById('api-test-btn');
+  if(!k.startsWith('sk-ant-')){showToast('กรุณาใส่ Anthropic API Key ที่ขึ้นต้นด้วย sk-ant-','warn','⚠️');return;}
+  const oldText=btn.textContent;btn.disabled=true;btn.textContent='กำลังทดสอบ...';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':k,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:20,
+        messages:[{role:'user',content:'Reply with exactly: API OK'}]
+      })
+    });
+    if(!resp.ok){
+      const e=await resp.json().catch(()=>({}));
+      throw new Error(e.error?.message||('HTTP '+resp.status));
+    }
+    const data=await resp.json();
+    const text=(data.content||[]).map(x=>x.text||'').join('').trim();
+    showToast('เชื่อมต่อ Claude API สำเร็จ'+(text?' — '+text:''),'success','✅');
+    document.getElementById('ak-ok').className='ak-ok on';
+    document.getElementById('ak-err').className='ak-err';
+    try{localStorage.setItem('ra_key',k)}catch(e){}
+  }catch(err){
+    showToast('ทดสอบ API ไม่สำเร็จ: '+err.message,'warn','❌');
+    document.getElementById('ak-ok').className='ak-ok';
+    document.getElementById('ak-err').className='ak-err on';
+  }finally{btn.disabled=false;btn.textContent=oldText;}
+}
+
 function chkKey(){
   const k=document.getElementById('api-key').value.trim();
   document.getElementById('ak-ok').className='ak-ok'+(k.startsWith('sk-ant-')?'  on':'');
@@ -3511,7 +3549,7 @@ document.addEventListener('click',(e)=>{
       <button onclick="apikeyPopupClose()" style="flex:1;padding:10px;border:1.5px solid var(--bd);border-radius:var(--r);background:#fff;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;color:var(--t2)">ยกเลิก</button>
       <button id="apikey-popup-btn" onclick="apikeyPopupSave()" style="flex:2;padding:10px;border:none;border-radius:var(--r);background:#2563EB;color:#fff;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;opacity:.5;pointer-events:none">บันทึกและใช้งาน</button>
     </div>
-    <p style="margin:12px 0 0;font-size:11px;color:var(--t3);text-align:center">API Key จะถูกบันทึกไว้ใน browser นี้เครื่องนี้เท่านั้น</p>
+    <p style="margin:12px 0 0;font-size:11px;color:var(--t3);text-align:center;line-height:1.5">API Key จะถูกบันทึกไว้ใน browser เครื่องนี้เท่านั้น<br><b style="color:#B45309">ใช้สำหรับทดลองส่วนตัวเท่านั้น ห้ามเผยแพร่ไฟล์พร้อม Key หรือใช้บนเว็บสาธารณะ</b></p>
   </div>
 </div>
 
