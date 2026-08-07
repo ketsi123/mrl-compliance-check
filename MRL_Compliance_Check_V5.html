@@ -1173,6 +1173,43 @@ function swTab(i){
   if(fab)fab.classList.toggle('show',true);
   if(i===2&&document.getElementById('admin-app')?.style.display!=='none') xFilter.renderFiltered();
 }
+
+// เลือก Claude model ที่ API Key นี้ใช้งานได้โดยอัตโนมัติ
+let CLAUDE_MODEL_CACHE = '';
+async function resolveClaudeModel(apiKey){
+  if(CLAUDE_MODEL_CACHE) return CLAUDE_MODEL_CACHE;
+  try{
+    const r = await fetch('https://api.anthropic.com/v1/models?limit=100', {
+      method:'GET',
+      headers:{
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      }
+    });
+    if(r.ok){
+      const j = await r.json();
+      const ids = (j.data || []).map(x => x.id).filter(Boolean);
+      const preferred = [
+        /claude-sonnet-4-5/i,
+        /claude-sonnet-4(?!-5)/i,
+        /claude-3-7-sonnet/i,
+        /claude-3-5-sonnet/i,
+        /claude-3-5-haiku/i,
+        /claude-3-haiku/i
+      ];
+      for(const re of preferred){
+        const found = ids.find(id => re.test(id));
+        if(found){ CLAUDE_MODEL_CACHE = found; return found; }
+      }
+      if(ids.length){ CLAUDE_MODEL_CACHE = ids[0]; return ids[0]; }
+    }
+  }catch(e){ console.warn('Model list unavailable:', e); }
+  // fallback ที่ Anthropic รองรับอย่างแพร่หลาย
+  CLAUDE_MODEL_CACHE = 'claude-3-5-haiku-20241022';
+  return CLAUDE_MODEL_CACHE;
+}
+
 async function testClaudeKey(){
   const k=document.getElementById('api-key').value.trim();
   const btn=document.getElementById('api-test-btn');
@@ -1188,7 +1225,7 @@ async function testClaudeKey(){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:await resolveClaudeModel(k),
         max_tokens:20,
         messages:[{role:'user',content:'Reply with exactly: API OK'}]
       })
@@ -1199,7 +1236,7 @@ async function testClaudeKey(){
     }
     const data=await resp.json();
     const text=(data.content||[]).map(x=>x.text||'').join('').trim();
-    showToast('เชื่อมต่อ Claude API สำเร็จ'+(text?' — '+text:''),'success','✅');
+    showToast('เชื่อมต่อ Claude API สำเร็จ — '+CLAUDE_MODEL_CACHE+(text?' — '+text:''),'success','✅');
     document.getElementById('ak-ok').className='ak-ok on';
     document.getElementById('ak-err').className='ak-err';
     try{localStorage.setItem('ra_key',k)}catch(e){}
@@ -2254,7 +2291,7 @@ const t2={
       const resp=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
         headers:{'content-type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:6000,system:sys,messages:[{role:'user',content:`LAB REPORT:\n${this.pdfText.slice(0,6000)}\n\nวิเคราะห์ตามมาตรฐาน ตอบ JSON เท่านั้น`}]})
+        body:JSON.stringify({model:await resolveClaudeModel(apiKey),max_tokens:6000,system:sys,messages:[{role:'user',content:`LAB REPORT:\n${this.pdfText.slice(0,6000)}\n\nวิเคราะห์ตามมาตรฐาน ตอบ JSON เท่านั้น`}]})
       });
       if(!resp.ok){const e=await resp.json().catch(()=>({}));throw new Error(`API ${resp.status}: ${e.error?.message||resp.statusText}`);}
       const data=await resp.json();
