@@ -739,12 +739,12 @@ td { overflow-wrap: anywhere; }
 .standard-change summary::-webkit-details-marker { display: none; }
 .standard-change summary:hover { background: #f4fbf9; }
 .standard-change summary:focus-visible { outline: 2px solid #268477; outline-offset: -3px; border-radius: 10px; }
-.change-mark { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border-radius: 9px; background: #e4f6ee; color: #146d58; font-size: 20px; }
+.change-mark { display: grid; place-items: center; flex: 0 0 28px; height: 28px; border-radius: 8px; background: #e4f6ee; color: #146d58; }
+.change-mark::before { content: ''; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid currentColor; }
+.standard-change[open] .change-mark::before { transform: rotate(90deg); }
 .change-title { min-width: 0; flex: 1; }
 .change-title strong { display: block; color: #173958; font-size: 14px; font-weight: 700; line-height: 1.35; }
 .change-title > span { display: block; color: #526a7d; margin-top: 3px; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
-.change-chevron { width: 7px; height: 7px; border-right: 1.5px solid #4d7182; border-bottom: 1.5px solid #4d7182; transform: rotate(45deg); flex: 0 0 7px; margin: 0 3px 4px 0; }
-.standard-change[open] .change-chevron { transform: rotate(225deg); margin-bottom: 0; }
 .standard-change[open] { border-color: #97cfc0; }
 .change-comparison { display: grid; gap: 10px; padding: 0 14px 14px 54px; }
 .change-comparison > div { border-left: 2px solid #dbe4ed; padding-left: 10px; }
@@ -922,23 +922,23 @@ td { overflow-wrap: anywhere; }
       <h4><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg> ชื่อมาตรฐานที่ปรับ · 5 รายการ</h4>
       <div class="wn-ren">
 <details class="standard-change">
-  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>DLD · 12/07/2549</strong><span>สินค้าปศุสัตว์ · 56 รายการ</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <summary><span class="change-mark" aria-hidden="true"></span><span class="change-title"><strong>DLD · 12/07/2549</strong><span>สินค้าปศุสัตว์ · 56 รายการ</span></span></summary>
   <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>DLD (12/07/2549) สินค้าปศุสัตว์</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>DLD (12/07/2549) สินค้าปศุสัตว์ (56 รายการ)</p></div></div>
 </details>
 <details class="standard-change">
-  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 460 / 2568</strong><span>อาหารที่มีสารพิษตกค้าง</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <summary><span class="change-mark" aria-hidden="true"></span><span class="change-title"><strong>สธ. 460 / 2568</strong><span>อาหารที่มีสารพิษตกค้าง</span></span></summary>
   <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวงสธ. ฉบับที่ 387 ปี 2560 อาหารที่มีสารพิษตกค้าง</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวงสธ. ฉบับที่ 460 ปี 2568 อาหารที่มีสารพิษตกค้าง</p></div></div>
 </details>
 <details class="standard-change">
-  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 303 / 2550</strong><span>อาหารที่มียาสัตว์ตกค้าง · 30 รายการ</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <summary><span class="change-mark" aria-hidden="true"></span><span class="change-title"><strong>สธ. 303 / 2550</strong><span>อาหารที่มียาสัตว์ตกค้าง · 30 รายการ</span></span></summary>
   <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง (30 รายการ)</p></div></div>
 </details>
 <details class="standard-change">
-  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 419 / 2563</strong><span>อาหารที่มีสารพิษตกค้าง ฉบับที่ 3 · 6 รายการ</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <summary><span class="change-mark" aria-hidden="true"></span><span class="change-title"><strong>สธ. 419 / 2563</strong><span>อาหารที่มีสารพิษตกค้าง ฉบับที่ 3 · 6 รายการ</span></span></summary>
   <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3)</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3) (6 รายการ)</p></div></div>
 </details>
 <details class="standard-change">
-  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 414 / 2563</strong><span>อาหารที่มีสารปนเปื้อน (Heavy Metal)</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <summary><span class="change-mark" aria-hidden="true"></span><span class="change-title"><strong>สธ. 414 / 2563</strong><span>อาหารที่มีสารปนเปื้อน (Heavy Metal)</span></span></summary>
   <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy Metal)</p></div></div>
 </details>
 </div>
