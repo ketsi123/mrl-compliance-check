@@ -831,6 +831,7 @@ td { overflow-wrap: anywhere; }
 @media (max-width:640px) {
 }
 #res-dd-status { left: auto !important; right: 0; }
+#tab0 .pb.no-match { opacity: .3; cursor: default; }
 </style>
 </head>
 <body>
@@ -1637,6 +1638,7 @@ async function autoSyncFromSheet(){
       admin.fillGrpList&&admin.fillGrpList();
       admin.fillStdSel&&admin.fillStdSel();
       admin.fillProdList&&admin.fillProdList();
+      t1.applySearch&&t1.applySearch();
       t1.render&&t1.render();
       xFilter.renderFiltered&&xFilter.renderFiltered();
       pub.updateBadge&&pub.updateBadge();
@@ -1654,7 +1656,7 @@ async function syncFromSheet(){
   wDATA=keepBaseZeroMrls(res.DATA);wSTD=res.STD_META;
   updateLandingStats();
   admin.updateStats();admin.fillSubList();admin.fillGrpList();admin.fillProdList();admin.fillStdSel();
-  t1.render();xFilter.renderFiltered();
+  t1.applySearch();t1.render();xFilter.renderFiltered();
   showToast('✅ ซิงค์สำเร็จ: '+wDATA.length+' สาร / '+Object.keys(wSTD).length+' มาตรฐาน','info','✅');
 }
 async function initSheets(){
@@ -1860,20 +1862,53 @@ const t1={
   prods:new Set(),stds:new Set(),allStd:false,
   seg:'ALL',req:'ALL',name:'ALL',q:'',
 
+  _matchingSearchStandards(){
+    const query=this.q.toLowerCase();
+    if(!query)return new Set();
+    return new Set(Object.entries(wSTD).filter(([id,standard])=>
+      id.toLowerCase().includes(query)||(standard.label||id).toLowerCase().includes(query)
+    ).map(([id])=>id));
+  },
+  _queryRows(){
+    const query=this.q.toLowerCase();
+    const standards=this._matchingSearchStandards();
+    const rows=[];
+    for(const item of wDATA){
+      const matchesItem=item.name.toLowerCase().includes(query)||
+        (item.group||'').toLowerCase().includes(query)||
+        (item.aliases||[]).some(alias=>alias.toLowerCase().includes(query));
+      const entries=[];
+      for(const [standard,products] of Object.entries(item.std_mrls||{})){
+        if(standards.size?!standards.has(standard):!matchesItem)continue;
+        for(const [product,value] of Object.entries(products)){
+          if(value==null||value==='')continue;
+          entries.push({prod:product,std:standard,val:value,isND:value===0||value==='0'||value==='ต้องตรวจไม่พบ'||value==='ห้ามใช้'||value==='ND'});
+        }
+      }
+      if(entries.length)rows.push({item,entries,isStdMatch:standards.size>0});
+    }
+    return rows;
+  },
+  _matchingProducts(){
+    if(!this.q)return new Set(PRODUCTS);
+    return new Set(this._queryRows().flatMap(row=>row.entries.map(entry=>entry.prod)));
+  },
+
   sp(p){
+    if(this.q&&!this._matchingProducts().has(p))return;
     if(this.prods.has(p))this.prods.delete(p);else this.prods.add(p);
     document.querySelectorAll('[data-p]').forEach(b=>b.className='pb'+(this.prods.has(b.dataset.p)?' sel-'+b.dataset.p:''));
     const ab=document.getElementById('t1-all-prod');
-    const all=PRODUCTS;
+    const all=PRODUCTS.filter(product=>this._matchingProducts().has(product));
     if(ab) ab.className='pb'+(all.every(x=>this.prods.has(x))?' sel-all':'');
     this.stds.clear();this.allStd=false;this.name='ALL';this.req='ALL';
     buildStds('t1-stds','t1-all','t1.ts','t1.sa',this.prods);
     this.uClr();this.applySearch();this.render();
   },
   spAll(){
-    const all=PRODUCTS;
+    const all=PRODUCTS.filter(product=>this._matchingProducts().has(product));
     const allSel=all.every(p=>this.prods.has(p));
-    if(allSel)this.prods.clear();else all.forEach(p=>this.prods.add(p));
+    if(allSel)this.prods.clear();else this.prods=new Set(all);
     document.querySelectorAll('[data-p]').forEach(b=>b.className='pb'+(this.prods.has(b.dataset.p)?' sel-'+b.dataset.p:''));
     const ab=document.getElementById('t1-all-prod');
     if(ab) ab.className='pb'+(all.every(p=>this.prods.has(p))?' sel-all':'');
@@ -1882,22 +1917,31 @@ const t1={
     this.uClr();this.applySearch();this.render();
   },
   ts(s){
+    if(this.q&&!this._queryRows().some(row=>row.entries.some(entry=>entry.std===s&&(!this.prods.size||this.prods.has(entry.prod)))))return;
     if(this.stds.has(s))this.stds.delete(s);else this.stds.add(s);
     this.allStd=false;this.name='ALL';this.req='ALL';
     document.querySelectorAll('#t1-stds .sc').forEach(c=>c.classList.toggle('sel',this.stds.has(c.dataset.s)));
     const ac=document.getElementById('t1-all');if(ac)ac.classList.remove('sel');
-    this.uClr();this.render();
+    this.uClr();this.applySearch();this.render();
   },
   sa(){
     this.allStd=!this.allStd;if(this.allStd)this.stds.clear();
     this.name='ALL';this.req='ALL';
     document.querySelectorAll('#t1-stds .sc').forEach(c=>c.classList.remove('sel'));
     const ac=document.getElementById('t1-all');if(ac)ac.classList.toggle('sel',this.allStd);
-    this.uClr();this.render();
+    this.uClr();this.applySearch();this.render();
   },
 
   onSearch(v){
     this.q=v.trim();
+    const availableProducts=this._matchingProducts();
+    this.prods=new Set([...this.prods].filter(product=>availableProducts.has(product)));
+    const availableStandards=new Set(this._queryRows().flatMap(row=>row.entries
+      .filter(entry=>!this.prods.size||this.prods.has(entry.prod)).map(entry=>entry.std)));
+    this.stds=new Set([...this.stds].filter(standard=>availableStandards.has(standard)));
+    document.querySelectorAll('[data-p]').forEach(button=>{
+      button.className='pb'+(this.prods.has(button.dataset.p)?' sel-'+button.dataset.p:'');
+    });
     const qx=document.getElementById('t1-qx');if(qx)qx.style.display=this.q?'':'none';
     this._showSearchDd(v.trim());
     this.uClr();this.applySearch();this.render();
@@ -1935,7 +1979,7 @@ const t1={
     const inp=document.getElementById('t1-q');if(inp)inp.value='';
     const qx=document.getElementById('t1-qx');if(qx)qx.style.display='none';
     const dd=document.getElementById('t1-q-dd');if(dd)dd.style.display='none';
-    if(!this.prods.size){const a=document.getElementById('t1-stds');if(a)a.innerHTML='<div style="font-size:12px;color:var(--t3)">เลือกสินค้าก่อน</div>';}
+    buildStds('t1-stds','t1-all','t1.ts','t1.sa',this.prods);
     this.uClr();this.applySearch();this.render();
   },
   clearAll(){
@@ -1947,7 +1991,7 @@ const t1={
     document.querySelectorAll('[data-p]').forEach(b=>b.className='pb');
     document.querySelectorAll('[data-p]').forEach(b=>b.classList.remove('has-match','no-match'));
     buildStds('t1-stds','t1-all','t1.ts','t1.sa',null);
-    this.uClr();
+    this.uClr();this.applySearch();
     const info=document.getElementById('t1-search-info');if(info)info.innerHTML='';
     this.render();
   },
@@ -1958,54 +2002,76 @@ const t1={
   },
 
   applySearch(){
-    const q=this.q.toLowerCase();
     const info=document.getElementById('t1-search-info');
-    if(!q){
-      document.querySelectorAll('[data-p]').forEach(b=>b.classList.remove('has-match','no-match'));
-      document.querySelectorAll('#t1-stds .sc').forEach(c=>c.classList.remove('std-match','std-dim'));
+    if(!this.q){
+      document.querySelectorAll('[data-p]').forEach(button=>{
+        button.classList.remove('has-match','no-match');
+        button.disabled=false;
+      });
+      document.querySelectorAll('#t1-stds .sc').forEach(chip=>{
+        chip.classList.remove('std-match','std-dim');
+        chip.classList.toggle('sel',this.stds.has(chip.dataset.s));
+      });
+      const allProducts=document.getElementById('t1-all-prod');
+      if(allProducts){
+        allProducts.disabled=false;
+        allProducts.classList.toggle('sel-all',PRODUCTS.every(product=>this.prods.has(product)));
+      }
+      const allStandards=document.getElementById('t1-all');
+      if(allStandards)allStandards.classList.toggle('sel',this.allStd);
       if(info)info.innerHTML='';
       return;
     }
-    const isStdQ=Object.entries(wSTD).some(([k,v])=>v.label.toLowerCase().includes(q)||k.toLowerCase().includes(q));
-    const matchStds=new Set(Object.entries(wSTD).filter(([k,v])=>v.label.toLowerCase().includes(q)||k.toLowerCase().includes(q)).map(([k])=>k));
-
-    if(isStdQ){
-      const area=document.getElementById('t1-stds');
-      if(!this.prods.size&&area){
-        const groups={};
-        for(const s of Object.keys(wSTD)){const m=wSTD[s];if(!groups[m.g])groups[m.g]=[];groups[m.g].push({s,m});}
-        let h='';
-        for(const[g,items] of Object.entries(groups)){
-          h+=`<div class="sgl">${g}</div><div class="srow">`;
-          for(const{s,m} of items){
-            const isM=matchStds.has(s);
-            h+=`<div class="sc ${isM?'std-match rel':'std-dim dim'}" data-s="${s}">${m.label||s}</div>`;
-          }
-          h+='</div>';
-        }
-        area.innerHTML=h;
-      } else {
-        document.querySelectorAll('#t1-stds .sc').forEach(c=>{
-          c.classList.toggle('std-match',matchStds.has(c.dataset.s));
-          c.classList.toggle('std-dim',!matchStds.has(c.dataset.s));
-        });
-      }
-      if(info)info.innerHTML=`<span style="font-size:13px;color:var(--blue);font-weight:600">🎯 พบมาตรฐาน: <strong>${[...matchStds].map(s=>wSTD[s]?.label||s).join(', ')}</strong></span>`;
-    } else {
-      const matches=wDATA.filter(d=>d.name.toLowerCase().includes(q)||(d.group||''). toLowerCase().includes(q)||(d.aliases||[]).some(a=>a.toLowerCase().includes(q)));
-      const matchProds=new Set();const matchStds2=new Set();
-      matches.forEach(d=>Object.entries(d.std_mrls||{}).forEach(([std,prods])=>Object.keys(prods).forEach(p=>{matchProds.add(p);matchStds2.add(std);})));
-      document.querySelectorAll('[data-p]').forEach(b=>{b.classList.toggle('has-match',matchProds.has(b.dataset.p));b.classList.toggle('no-match',!matchProds.has(b.dataset.p));});
-      document.querySelectorAll('#t1-stds .sc').forEach(c=>{c.classList.toggle('std-match',matchStds2.has(c.dataset.s));c.classList.toggle('std-dim',!matchStds2.has(c.dataset.s));});
-      if(info){
-        if(matches.length===0)info.innerHTML=`<span style="color:var(--red);font-size:13px">ไม่พบสาร "<strong>${escapeLookupText(this.q)}</strong>"</span>`;
-        else{const pl=[...matchProds].map(p=>(EMOJI[p]||'')+' '+p).join(', ');info.innerHTML=`<span style="font-size:13px;color:var(--blue);font-weight:600">พบ <strong>${matches.length}</strong> รายการ — มีใน: ${pl}</span>`;}
+    const queryRows=this._queryRows();
+    const selectedRows=queryRows.map(row=>({...row,entries:row.entries.filter(entry=>
+      !this.stds.size||this.allStd||this.stds.has(entry.std)
+    )}));
+    const products=new Set(selectedRows.flatMap(row=>row.entries.map(entry=>entry.prod)));
+    this.prods=new Set([...this.prods].filter(product=>products.has(product)));
+    document.querySelectorAll('[data-p]').forEach(button=>{
+      button.className='pb'+(this.prods.has(button.dataset.p)?' sel-'+button.dataset.p:'');
+      const related=products.has(button.dataset.p);
+      button.classList.toggle('has-match',related);
+      button.classList.toggle('no-match',!related);
+      button.disabled=!related;
+    });
+    const standards=new Set(queryRows.flatMap(row=>row.entries.filter(entry=>
+      !this.prods.size||this.prods.has(entry.prod)
+    ).map(entry=>entry.std)));
+    const scopeProducts=this.prods.size?this.prods:new Set(queryRows.flatMap(row=>row.entries.map(entry=>entry.prod)));
+    buildStds('t1-stds','t1-all','t1.ts','t1.sa',scopeProducts);
+    document.querySelectorAll('#t1-stds .sc').forEach(chip=>{
+      const related=standards.has(chip.dataset.s);
+      chip.classList.toggle('std-match',related);
+      chip.classList.toggle('std-dim',!related);
+      chip.classList.toggle('dim',!related);
+      chip.classList.toggle('sel',related&&this.stds.has(chip.dataset.s));
+    });
+    const allStandards=document.getElementById('t1-all');
+    if(allStandards){
+      allStandards.textContent='✦ ALL ('+standards.size+')';
+      allStandards.classList.toggle('sel',this.allStd);
+    }
+    const allProducts=document.getElementById('t1-all-prod');
+    if(allProducts){
+      const available=PRODUCTS.filter(product=>products.has(product));
+      allProducts.disabled=available.length===0;
+      allProducts.classList.toggle('sel-all',available.length>0&&available.every(product=>this.prods.has(product)));
+    }
+    const matchedStandards=this._matchingSearchStandards();
+    if(info){
+      if(matchedStandards.size){
+        info.innerHTML='<span style="color:var(--blue);font-weight:600">🎯 พบมาตรฐาน: <strong>'+
+          [...matchedStandards].map(id=>escapeLookupText(wSTD[id]?.label||id)).join(', ')+'</strong></span>';
+      }else{
+        info.textContent=queryRows.length?'พบ '+queryRows.length+' รายการ':'ไม่พบสาร "'+this.q+'"';
       }
     }
   },
 
   render(){
     const area=document.getElementById('t1-res');
+    if(this.q){this.renderSearch(area);return;}
     const active=this.prods.size&&(this.stds.size||this.allStd);
 
     if(!active){
@@ -2107,24 +2173,13 @@ const t1={
 
   renderSearch(area){
     const q=this.q.toLowerCase();
-    const matchStds=Object.entries(wSTD).filter(([k,v])=>v.label.toLowerCase().includes(q)||k.toLowerCase().includes(q)).map(([k])=>k);
+    const matchStds=[...this._matchingSearchStandards()];
     const isStdQ=matchStds.length>0;
-    let rows=[];
-    if(isStdQ){
-      for(const item of wDATA){
-        const entries=[];
-        for(const std of matchStds){const m=item.std_mrls[std];if(!m)continue;for(const[p,v] of Object.entries(m)){entries.push({prod:p,std,val:v,isND:v===0||v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'||v==='0'});}}
-        if(entries.length)rows.push({item,entries,isStdMatch:true});
-      }
-    }
-    const matchSub=wDATA.filter(d=>d.name.toLowerCase().includes(q)||(d.aliases||[]).some(a=>a.toLowerCase().includes(q)));
-    const existing=new Set(rows.map(r=>r.item.name));
-    for(const item of matchSub){
-      if(existing.has(item.name))continue;
-      const entries=[];
-      for(const[std,prods] of Object.entries(item.std_mrls||{}))for(const[p,v] of Object.entries(prods)){entries.push({prod:p,std,val:v,isND:v===0||v==='ต้องตรวจไม่พบ'||v==='ห้ามใช้'||v==='ND'||v==='0'});}
-      if(entries.length)rows.push({item,entries,isStdMatch:false});
-    }
+    const rows=this._queryRows().map(row=>({...row,entries:row.entries.filter(entry=>
+      (!this.prods.size||this.prods.has(entry.prod))&&
+      (!this.stds.size||this.allStd||this.stds.has(entry.std))
+    )})).filter(row=>row.entries.length>0);
+    t1._exportRowsSearch=rows;t1._exportIsStd=isStdQ;
     rows.sort((a,b)=>a.item.name.localeCompare(b.item.name));
 
     if(!rows.length){area.innerHTML=`<div class="emp">ไม่พบผลลัพธ์สำหรับ "<strong>${escapeLookupText(this.q)}</strong>"</div>`;return;}
@@ -2132,7 +2187,7 @@ const t1={
     t1._exportRowsSearch=rows;t1._exportIsStd=isStdQ;
     let summaryParts=[];
     if(isStdQ)summaryParts.push(`มาตรฐาน: <strong>${matchStds.map(s=>wSTD[s]?.label||s).join(', ')}</strong> — ${rows.filter(r=>r.isStdMatch).length} รายการ`);
-    else summaryParts.push(`ชื่อสาร "<strong>${escapeLookupText(this.q)}</strong>" — ${matchSub.length} รายการ`);
+    else summaryParts.push(`ชื่อสาร "<strong>${escapeLookupText(this.q)}</strong>" — ${rows.length} รายการ`);
 
     let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
       <div style="font-size:13px;color:var(--blue);font-weight:600">พบ ${rows.length} รายการ — ${summaryParts.join(' + ')}</div>
