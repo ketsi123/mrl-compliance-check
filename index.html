@@ -577,24 +577,26 @@ button:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:foc
 .dataset-stat { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 3px 10px; padding: 13px 8px; background: white; text-align: center; }
 .dataset-stat strong { font: 700 clamp(22px, 3vw, 31px)/1.25 'Instrument Sans', var(--font); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
 .dataset-stat span { color: var(--t2); font-size: 13px; }
-.launch-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 21px; margin-top: 23px; }
+.launch-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 23px; }
 .launch-card {
  display: grid; grid-template-columns: minmax(0,1fr) auto; grid-template-rows: auto 1fr;
  min-width: 0; padding: 0; gap: 0; overflow: hidden; text-align: left; color: #122e62;
- border: 1px solid #c8d9ed; border-radius: 21px; background: #fff;
+ border: 1px solid #c8d9ed; border-radius: 16px; background: #fff;
  box-shadow: 0 7px 18px -8px #2d4f7a3b, inset 0 1px 0 #fff;
  cursor: pointer; transition: transform .2s ease, box-shadow .2s ease;
 }
 .launch-card-ai { border-color: #b6dcd1; }
 .launch-card-admin { border-color: #d1c8ee; }
 .launch-card:hover { transform: translateY(-5px); box-shadow: 0 15px 28px -14px #294e8a70; }
-.launch-art { grid-column: 1 / -1; width: 100%; aspect-ratio: 1.13; overflow: hidden; background: #e5f1fc; }
-.launch-art img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+.launch-art { grid-column: 1 / -1; width: 100%; aspect-ratio: 1.9; max-height: 200px; overflow: hidden; background: linear-gradient(135deg,#e7f3ff,#c6def8); }
+.launch-art img { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform .3s ease; }
+.launch-card-ai .launch-art { background: linear-gradient(135deg,#e2f8f0,#bfe6db); }
+.launch-card-admin .launch-art { background: linear-gradient(135deg,#f0e9ff,#d4c9ef); }
 .launch-card:hover .launch-art img { transform: scale(1.025); }
-.launch-copy { grid-column: 1; grid-row: 2; align-self: start; min-width: 0; padding: 20px 7px 22px 20px; }
-.launch-copy strong { display: block; font-size: clamp(18px, 1.8vw, 23px); line-height: 1.4; font-weight: 800; color: #142e66; }
-.launch-copy small { display: block; margin-top: 8px; color: #536175; font-size: 13px; line-height: 1.65; font-weight: 400; }
-.launch-arrow { grid-column: 2; grid-row: 2; display: grid; place-items: center; width: 36px; height: 36px; margin: 22px 17px 0 5px; border-radius: 50%; background: #17336c; color: white; font-size: 23px; line-height: 1; box-shadow: 0 4px 9px #24447824; }
+.launch-copy { grid-column: 1; grid-row: 2; align-self: start; min-width: 0; padding: 13px 6px 15px 15px; }
+.launch-copy strong { display: block; font-size: clamp(17px, 1.5vw, 19px); line-height: 1.4; font-weight: 800; color: #142e66; }
+.launch-copy small { display: block; margin-top: 5px; color: #536175; font-size: 12px; line-height: 1.6; font-weight: 400; }
+.launch-arrow { grid-column: 2; grid-row: 2; display: grid; place-items: center; width: 30px; height: 30px; margin: 15px 13px 0 4px; border-radius: 50%; background: #17336c; color: white; font-size: 20px; line-height: 1; box-shadow: 0 4px 9px #24447824; }
 @media (max-width:1000px) and (min-width:641px) {
  .launch-grid { gap: 13px; }
  .launch-copy { padding: 15px 4px 18px 14px; }
@@ -604,12 +606,12 @@ button:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:foc
 }
 @media (max-width:640px) {
  .launch-grid { grid-template-columns: minmax(0,1fr); gap: 16px; margin-top: 16px; }
- .launch-art { aspect-ratio: 1.4; }
+ .launch-art { aspect-ratio: 1.9; max-height: 180px; }
  .launch-art img { object-position: center 45%; }
- .launch-copy { padding: 16px 8px 20px 18px; }
- .launch-copy strong { font-size: 21px; }
+ .launch-copy { padding: 13px 6px 15px 15px; }
+ .launch-copy strong { font-size: 19px; }
  .launch-copy small { font-size: 13px; margin-top: 6px; }
- .launch-arrow { margin: 18px 18px 0 5px; }
+ .launch-arrow { margin: 15px 13px 0 4px; }
 }
 @media (prefers-reduced-motion:reduce) {
  .launch-card, .launch-art img { transition: none; }
