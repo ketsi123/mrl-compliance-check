@@ -740,8 +740,8 @@ td { overflow-wrap: anywhere; }
 .standard-change summary:hover { background: #f4fbf9; }
 .standard-change summary:focus-visible { outline: 2px solid #268477; outline-offset: -3px; border-radius: 10px; }
 .change-mark { display: grid; place-items: center; flex: 0 0 28px; height: 28px; border-radius: 8px; background: #e4f6ee; color: #146d58; }
-.change-mark::before { content: ''; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid currentColor; }
-.standard-change[open] .change-mark::before { transform: rotate(90deg); }
+.change-mark::before { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid currentColor; }
+.standard-change[open] .change-mark::before { transform: rotate(180deg); }
 .change-title { min-width: 0; flex: 1; }
 .change-title strong { display: block; color: #173958; font-size: 14px; font-weight: 700; line-height: 1.35; }
 .change-title > span { display: block; color: #526a7d; margin-top: 3px; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
