@@ -735,11 +735,25 @@ td { overflow-wrap: anywhere; }
 .wn-cta:hover { background: #0e685e; }
 .wn-side { min-width: 0; padding: 25px; background: linear-gradient(150deg, #f2fbf8, #f9fbfe); border-left: 1px solid var(--bd); }
 .wn-side h4 { display: flex; align-items: center; gap: 7px; font-size: 14px; margin-bottom: 13px; color: #35536d; }
-.wn-ren { display: grid; gap: 9px; max-height: 320px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin; }
-.wn-ren > div { border: 1px solid var(--bd); border-radius: 10px; background: #fff; padding: 9px 12px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
-.wn-ren s { display: block; color: #64748b; text-decoration-color: #cf8191; }
-.wn-ren b { display: block; color: #173958; margin-top: 3px; font-weight: 600; }
-.wn-ren b::before { content: '→ '; color: #08745b; }
+.wn-ren { display: grid; gap: 9px; }
+.standard-change { border: 1px solid #d8e7e9; border-radius: 12px; background: white; overflow: hidden; }
+.standard-change summary { display: flex; align-items: center; gap: 11px; padding: 12px 13px; cursor: pointer; list-style: none; }
+.standard-change summary::-webkit-details-marker { display: none; }
+.standard-change summary:hover { background: #f4fbf9; }
+.standard-change summary:focus-visible { outline: 2px solid #268477; outline-offset: -3px; border-radius: 10px; }
+.change-mark { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border-radius: 9px; background: #e4f6ee; color: #146d58; font-size: 20px; }
+.change-title { min-width: 0; flex: 1; }
+.change-title strong { display: block; color: #173958; font-size: 14px; font-weight: 700; line-height: 1.35; }
+.change-title > span { display: block; color: #526a7d; margin-top: 3px; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.change-chevron { width: 7px; height: 7px; border-right: 1.5px solid #4d7182; border-bottom: 1.5px solid #4d7182; transform: rotate(45deg); flex: 0 0 7px; margin: 0 3px 4px 0; }
+.standard-change[open] .change-chevron { transform: rotate(225deg); margin-bottom: 0; }
+.standard-change[open] { border-color: #97cfc0; }
+.change-comparison { display: grid; gap: 10px; padding: 0 14px 14px 54px; }
+.change-comparison > div { border-left: 2px solid #dbe4ed; padding-left: 10px; }
+.change-comparison .change-current { border-left-color: #38a887; }
+.change-label { display: block; font-size: 11px; color: #5c7185; font-weight: 600; }
+.change-comparison p { margin: 3px 0 0; font-size: 12px; color: #526477; line-height: 1.6; overflow-wrap: anywhere; }
+.change-current p { color: #0c5f4e; font-weight: 600; }
 .ic-svg { display: inline-block; width: 18px; height: 18px; vertical-align: middle; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .pb .pb-ic { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 9px; background: #eef4fa; font-size: 17px; line-height: 1; }
 .pb small { font-size: 12px; font-weight: 500; }
@@ -752,7 +766,7 @@ td { overflow-wrap: anywhere; }
 }
 @media (max-width:640px) {
  .wn-main, .wn-side { padding: 18px; }
- .wn-ren { max-height: 280px; }
+ .change-comparison { padding-left: 17px; }
  .pb { gap: 5px; padding: 6px 9px; }
  .pb small { font-size: 11px; }
 }
@@ -852,8 +866,29 @@ td { overflow-wrap: anywhere; }
       <button type="button" class="wn-cta" onclick="showDuck()">ดูเกณฑ์เนื้อเป็ด <svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></button>
     </div>
     <aside class="wn-side">
-      <h4><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg> ชื่อมาตรฐานที่เปลี่ยน</h4>
-      <div class="wn-ren"><div><s>DLD (12/07/2549) สินค้าปศุสัตว์</s><b>DLD (12/07/2549) สินค้าปศุสัตว์ (56 รายการ)</b></div><div><s>ประกาศกระทรวงสธ. ฉบับที่ 387 ปี 2560 อาหารที่มีสารพิษตกค้าง</s><b>ประกาศกระทรวงสธ. ฉบับที่ 460 ปี 2568 อาหารที่มีสารพิษตกค้าง</b></div><div><s>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง</s><b>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง (30 รายการ)</b></div><div><s>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3)</s><b>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3) (6 รายการ)</b></div><div><s>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy</s><b>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy Metal)</b></div></div>
+      <h4><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg> ชื่อมาตรฐานที่ปรับ · 5 รายการ</h4>
+      <div class="wn-ren">
+<details class="standard-change">
+  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>DLD · 12/07/2549</strong><span>สินค้าปศุสัตว์ · 56 รายการ</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>DLD (12/07/2549) สินค้าปศุสัตว์</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>DLD (12/07/2549) สินค้าปศุสัตว์ (56 รายการ)</p></div></div>
+</details>
+<details class="standard-change">
+  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 460 / 2568</strong><span>อาหารที่มีสารพิษตกค้าง</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวงสธ. ฉบับที่ 387 ปี 2560 อาหารที่มีสารพิษตกค้าง</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวงสธ. ฉบับที่ 460 ปี 2568 อาหารที่มีสารพิษตกค้าง</p></div></div>
+</details>
+<details class="standard-change">
+  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 303 / 2550</strong><span>อาหารที่มียาสัตว์ตกค้าง · 30 รายการ</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง (30 รายการ)</p></div></div>
+</details>
+<details class="standard-change">
+  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 419 / 2563</strong><span>อาหารที่มีสารพิษตกค้าง ฉบับที่ 3 · 6 รายการ</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3)</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3) (6 รายการ)</p></div></div>
+</details>
+<details class="standard-change">
+  <summary><span class="change-mark" aria-hidden="true">↻</span><span class="change-title"><strong>สธ. 414 / 2563</strong><span>อาหารที่มีสารปนเปื้อน (Heavy Metal)</span></span><span class="change-chevron" aria-hidden="true"></span></summary>
+  <div class="change-comparison"><div><span class="change-label">ชื่อเดิมในฐานข้อมูล</span><p>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy</p></div><div class="change-current"><span class="change-label">ชื่อปัจจุบัน</span><p>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy Metal)</p></div></div>
+</details>
+</div>
     </aside>
   </section>
 
