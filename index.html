@@ -580,19 +580,19 @@ button:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:foc
 .launch-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 23px; }
 .launch-card {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr;
-  gap: 9px; min-height: 175px; padding: 15px 18px 18px; border: 1px solid #c4d9e6;
-  border-radius: 17px; background: linear-gradient(130deg, #dcebf8 0%, #e8f3f8 55%, #eff8f7 100%); color: var(--tx); text-align: left; cursor: pointer;
+  gap: 9px; min-height: 175px; padding: 15px 18px 18px; border: 1px solid var(--bd);
+  border-radius: 17px; background: white; color: var(--tx); text-align: left; cursor: pointer;
   box-shadow: var(--sh); transition: transform .2s, box-shadow .2s, border-color .2s;
 }
 .launch-card:hover { transform: translateY(-4px); box-shadow: var(--shm); border-color: #8ab7d4; }
-.launch-card-ai { background: linear-gradient(130deg, #d4eee8 0%, #e0f3ee 55%, #edf7f7 100%); border-color: #abd6cb; }
-.launch-card-admin { background: linear-gradient(130deg, #e5e1f4 0%, #ebeaf8 55%, #edf3fa 100%); border-color: #d0c9e7; }
+.launch-card-ai { background: linear-gradient(145deg, #f2fff9, #fff 75%); border-color: #a9decf; }
+.launch-card-admin { background: linear-gradient(145deg, #f8f6fe, #fff 75%); border-color: #e1d9f0; }
 .launch-icon {
   display: block; width: 94px; height: 94px; object-fit: contain; margin: -5px 0 -4px -10px;
   transition: transform .2s ease;
 }
 .launch-card:hover .launch-icon { transform: translateY(-3px) scale(1.05); }
-.launch-arrow { align-self: start; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--bd); color: #365a70; background: #ffffff80; transition: transform .2s, background .2s; }
+.launch-arrow { align-self: start; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--bd); color: var(--t2); transition: transform .2s, background .2s; }
 .launch-card:hover .launch-arrow { transform: translate(2px, -2px); background: var(--bl); }
 .launch-copy { grid-column: 1 / -1; align-self: start; }
 .launch-copy strong { display: block; font-size: 17px; }
