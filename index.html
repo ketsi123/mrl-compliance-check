@@ -731,8 +731,6 @@ td { overflow-wrap: anywhere; }
 .wn-ic { display: grid; place-items: center; width: 33px; height: 33px; flex: 0 0 33px; background: #e4f7ef; color: #0b765d; border-radius: 10px; font-size: 19px; }
 .wn-ic.std { color: #24558c; background: #e9f2ff; }
 .wn-ic.ren { color: #6d4a9b; background: #f0eafb; }
-.wn-cta { display: inline-flex; align-items: center; gap: 10px; padding: 10px 17px; border: 0; border-radius: 10px; background: #173958; color: white; font-weight: 700; font-size: 13px; cursor: pointer; transition: background .15s; }
-.wn-cta:hover { background: #0e685e; }
 .wn-side { min-width: 0; padding: 25px; background: linear-gradient(150deg, #f2fbf8, #f9fbfe); border-left: 1px solid var(--bd); }
 .wn-side h4 { display: flex; align-items: center; gap: 7px; font-size: 14px; margin-bottom: 13px; color: #35536d; }
 .wn-ren { display: grid; gap: 9px; }
@@ -918,7 +916,7 @@ td { overflow-wrap: anywhere; }
         <li><span class="wn-ic ren"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path><path d="m13.5 6.5 4 4"></path></svg></span><span><b>อัปเดตชื่อมาตรฐาน 5 รายการ</b> — เช่น ฉบับที่ 387 ปี 2560 → ฉบับที่ 460 ปี 2568</span></li>
         <li><span class="wn-ic sub"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6"></path><path d="M10 3v6L4.5 18.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9V3"></path><path d="M7 15h10"></path></svg></span><span><b>เพิ่มสารใหม่ 48 รายการ</b> — ส่วนใหญ่เป็นสารกำจัดศัตรูพืช</span></li>
       </ul>
-      <button type="button" class="wn-cta" onclick="showDuck()">ดูเกณฑ์เนื้อเป็ด <svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></button>
+      
     </div>
     <aside class="wn-side">
       <h4><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg> ชื่อมาตรฐานที่ปรับ · 5 รายการ</h4>
@@ -1509,12 +1507,6 @@ function initLandingSuggestions(){
   document.addEventListener('click',event=>{
     if(!form.contains(event.target))close();
   });
-}
-function showDuck(){
-  bentoGo(0);
-  t1.clearAll();
-  t1.sp('Duck');
-  t1.sa();
 }
 function launchLookup(value){
   const query=value.trim();
