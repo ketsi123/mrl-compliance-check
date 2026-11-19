@@ -830,6 +830,7 @@ td { overflow-wrap: anywhere; }
 
 @media (max-width:640px) {
 }
+#res-dd-status { left: auto !important; right: 0; }
 </style>
 </head>
 <body>
@@ -2309,7 +2310,7 @@ const t2={
     const dd=document.getElementById('t2c-quick-dd');
     if(dd)dd.style.display='none';
     // reset product/standard filter
-    this._resFilterStds=new Set();this._resFilterProds=new Set();
+    this._resFilterStds=new Set();this._resFilterProds=new Set();this._resFilterStatuses=new Set();
     this.prodsC=new Set();this.stdC=null;
     document.querySelectorAll('[data-p3]').forEach(b=>b.className='pb');
     const ab=document.getElementById('t2c-all-prod');if(ab)ab.className='pb';
@@ -2359,11 +2360,13 @@ const t2={
 
   _resFilterStds:new Set(),
   _resFilterProds:new Set(),
+  _resFilterStatuses:new Set(),
 
   _filteredResRows(data=this._resData||[]){
     return data.filter(row=>
       (!this._resFilterStds.size||this._resFilterStds.has(row.std))&&
-      (!this._resFilterProds.size||this._resFilterProds.has(row.prod))
+      (!this._resFilterProds.size||this._resFilterProds.has(row.prod))&&
+      (!this._resFilterStatuses.size||this._resFilterStatuses.has(row.status))
     );
   },
   exportResultExcel(){
@@ -2398,13 +2401,14 @@ const t2={
     const tone=failCount?'fail':unratedCount?'warn':'pass';
     const title=failCount?'พบผลไม่ผ่านเกณฑ์':unratedCount?'มีรายการที่ยังสรุปผลไม่ได้':'ผ่านทุกเกณฑ์ที่ตรวจ';
     const filtered=this._filteredResRows(data);
-    const stdList=[...new Set(filtered.map(r=>r.std))].sort();
-    const prodList=[...new Set(filtered.map(r=>r.prod))].filter(p=>p!=='—').sort();
+    const stdList=[...new Set(data.map(r=>r.std))].sort();
+    const prodList=[...new Set(data.map(r=>r.prod))].filter(p=>p!=='—').sort();
+    const statuses=['PASS','FAIL','N/A'].filter(status=>data.some(row=>row.status===status));
     const mkDD=(id,vals,selSet)=>{
       const active=selSet.size>0;
       return `<div style="position:relative;display:inline-block">
         <button onclick="t2._openResDD('${id}')" style="border:none;background:none;padding:6px 10px;cursor:pointer;font-size:11px;font-weight:700;color:${active?'var(--blue)':'#475569'};display:flex;align-items:center;gap:4px">
-          ${id==='std'?'มาตรฐาน':'สินค้า'} ${active?'('+selSet.size+')':''} ▾
+          ${{std:'มาตรฐาน',prod:'สินค้า',status:'ผล'}[id]} ${active?'('+selSet.size+')':''} ▾
         </button>
         <div id="res-dd-${id}" style="display:none;position:absolute;top:100%;left:0;z-index:9999;background:#fff;border:2px solid #2563EB;border-radius:10px;box-shadow:0 8px 24px rgba(37,99,235,.18);min-width:220px;overflow:hidden">
           <div style="max-height:200px;overflow-y:auto;padding:6px">
@@ -2450,9 +2454,9 @@ const t2={
             <th style="padding:2px 4px">${mkDD('prod',prodList,this._resFilterProds)}</th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">เกณฑ์</th>
             <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:right">ค่าที่พบ</th>
-            <th style="padding:8px 12px;font-size:11px;font-weight:700;color:#475569;text-align:center">ผล</th>
+            <th style="padding:2px 4px;text-align:center">${mkDD('status',statuses,this._resFilterStatuses)}</th>
           </tr></thead>
-          <tbody>${rows}</tbody>
+          <tbody>${rows||'<tr><td colspan="6" class="emp">ไม่พบผลตรวจตามตัวกรองที่เลือก</td></tr>'}</tbody>
         </table>
         ${filtered.length<data.length?`<div style="padding:8px 12px;font-size:11px;color:var(--t2);background:#F8FAFC">แสดง ${filtered.length} / ${data.length} รายการ</div>`:''}
       </div>
@@ -2460,7 +2464,7 @@ const t2={
     // ปิด dropdown เมื่อคลิกที่อื่น
     setTimeout(()=>{
       document.addEventListener('click',function closeDD(e){
-        ['std','prod'].forEach(id=>{
+        ['std','prod','status'].forEach(id=>{
           const dd=document.getElementById('res-dd-'+id);
           const btn=dd?.previousElementSibling;
           if(dd&&!dd.contains(e.target)&&e.target!==btn) dd.style.display='none';
@@ -2474,13 +2478,13 @@ const t2={
     if(!dd)return;
     const isOpen=dd.style.display!=='none';
     // ปิดทุก dd ก่อน
-    ['std','prod'].forEach(x=>{const d=document.getElementById('res-dd-'+x);if(d)d.style.display='none';});
+    ['std','prod','status'].forEach(x=>{const d=document.getElementById('res-dd-'+x);if(d)d.style.display='none';});
     if(!isOpen) dd.style.display='';
   },
   _applyResDD(id){
     const dd=document.getElementById('res-dd-'+id);
     if(!dd)return;
-    const set=id==='std'?this._resFilterStds:this._resFilterProds;
+    const set={std:this._resFilterStds,prod:this._resFilterProds,status:this._resFilterStatuses}[id];
     set.clear();
     dd.querySelectorAll('input[type=checkbox]:checked').forEach(cb=>{
       set.add(cb.getAttribute('data-res-val'));
@@ -2496,7 +2500,8 @@ const t2={
     this._renderResTable(this._resData);
   },
   _clearResFilter(field){
-    if(field==='std')this._resFilterStds.clear();else this._resFilterProds.clear();
+    const selected={std:this._resFilterStds,prod:this._resFilterProds,status:this._resFilterStatuses}[field];
+    selected.clear();
     this._reRenderResTable();
   },
   _renderTableC(subs){
