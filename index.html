@@ -2350,7 +2350,7 @@ const t2={
           if(status==='PASS')color='var(--green)';
           else if(status==='FAIL')color='var(--red)';
         }
-        allResRows.push({sub:item.sub,std:r.std,prod:r.prod,mrlRaw:r.mrlRaw,found:item.found,unit:item.unit||'ppb (µg/kg)',foundPpb:Number.isFinite(found)?found:'',status,color});
+        allResRows.push({sub:item.sub,std:r.std,prod:r.prod,mrlRaw:r.mrlRaw,found:item.found,unit:item.unit||'ppb (µg/kg)',status,color});
       });
     });
     this._resData=allResRows;
