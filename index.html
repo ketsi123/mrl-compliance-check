@@ -719,6 +719,44 @@ td { overflow-wrap: anywhere; }
 
 .pb.sel-Duck{background:#0F766E;border-color:#0F766E;color:#fff;font-weight:700;box-shadow:0 0 0 3px rgba(15,118,110,.25)}
 .pb.sel-Duck.has-match{background:#0F766E;border-color:#0F766E;color:#fff;box-shadow:0 0 0 4px rgba(15,118,110,.35)}
+.whats-new { display: grid; grid-template-columns: 1.08fr 1fr; margin-top: 24px; border: 1px solid var(--bd); border-radius: 20px; background: white; box-shadow: var(--sh); overflow: hidden; }
+.wn-main { padding: 25px; }
+.wn-badge { display: inline-flex; align-items: center; gap: 7px; color: #126b59; background: #e6f8f1; border: 1px solid #c5e9dc; padding: 4px 10px; font-size: 12px; border-radius: 20px; font-weight: 700; }
+.wn-badge i { width: 6px; height: 6px; border-radius: 50%; background: #15977b; }
+.wn-main h3 { margin: 12px 0 6px; font-size: clamp(19px, 2vw, 23px); line-height: 1.4; color: #142d49; }
+.wn-main > p { color: var(--t2); font-size: 13px; }
+.wn-list { display: grid; gap: 12px; list-style: none; padding: 0; margin: 20px 0; }
+.wn-list li { display: flex; align-items: flex-start; gap: 11px; color: var(--t2); font-size: 13px; }
+.wn-list b { color: var(--tx); }
+.wn-ic { display: grid; place-items: center; width: 33px; height: 33px; flex: 0 0 33px; background: #e4f7ef; color: #0b765d; border-radius: 10px; font-size: 19px; }
+.wn-ic.std { color: #24558c; background: #e9f2ff; }
+.wn-ic.ren { color: #6d4a9b; background: #f0eafb; }
+.wn-cta { display: inline-flex; align-items: center; gap: 10px; padding: 10px 17px; border: 0; border-radius: 10px; background: #173958; color: white; font-weight: 700; font-size: 13px; cursor: pointer; transition: background .15s; }
+.wn-cta:hover { background: #0e685e; }
+.wn-side { min-width: 0; padding: 25px; background: linear-gradient(150deg, #f2fbf8, #f9fbfe); border-left: 1px solid var(--bd); }
+.wn-side h4 { display: flex; align-items: center; gap: 7px; font-size: 14px; margin-bottom: 13px; color: #35536d; }
+.wn-ren { display: grid; gap: 9px; max-height: 320px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin; }
+.wn-ren > div { border: 1px solid var(--bd); border-radius: 10px; background: #fff; padding: 9px 12px; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.wn-ren s { display: block; color: #64748b; text-decoration-color: #cf8191; }
+.wn-ren b { display: block; color: #173958; margin-top: 3px; font-weight: 600; }
+.wn-ren b::before { content: '→ '; color: #08745b; }
+.ic-svg { display: inline-block; width: 18px; height: 18px; vertical-align: middle; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pb .pb-ic { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 9px; background: #eef4fa; font-size: 17px; line-height: 1; }
+.pb small { font-size: 12px; font-weight: 500; }
+.pb[class*="sel-"] .pb-ic { background: #ffffff3d; }
+.pb-new { font-size: 10px; font-weight: 700; font-style: normal; border-radius: 20px; padding: 1px 7px; background: #e0f7ed; color: #08634d; }
+.pb.sel-Duck .pb-new { background: #fff; color: #08634d; }
+@media (max-width:850px) {
+ .whats-new { grid-template-columns: minmax(0,1fr); }
+ .wn-side { border-left: 0; border-top: 1px solid var(--bd); }
+}
+@media (max-width:640px) {
+ .wn-main, .wn-side { padding: 18px; }
+ .wn-ren { max-height: 280px; }
+ .pb { gap: 5px; padding: 6px 9px; }
+ .pb small { font-size: 11px; }
+}
+
 </style>
 </head>
 <body>
@@ -800,6 +838,26 @@ td { overflow-wrap: anywhere; }
       <span class="launch-copy"><strong>จัดการฐานข้อมูล</strong><small>ดูแลข้อมูลสาร มาตรฐาน และค่า MRL</small></span>
     </button>
   </nav>
+<section class="whats-new" aria-labelledby="wn-title">
+    <div class="wn-main">
+      <span class="wn-badge"><i></i>อัปเดตฐานข้อมูล · 19 พ.ย. 2569</span>
+      <h3 id="wn-title">เพิ่มเกณฑ์สินค้าเป็ด และอัปเดตชื่อมาตรฐาน</h3>
+      <p>รายการที่บันทึกในฐานข้อมูลกลาง MRL_Database</p>
+      <ul class="wn-list">
+        <li><span class="wn-ic duck">🦆</span><span><b>เพิ่มสินค้า Duck (เป็ด)</b> — 178 ค่าเกณฑ์ จาก 7 มาตรฐาน</span></li>
+        <li><span class="wn-ic std"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8"></path><path d="M8 3a2 2 0 0 0-2 2v14a2 2 0 0 1-2 2h4"></path><path d="M11 8h6M11 12h6M11 16h4"></path></svg></span><span><b>มาตรฐานใหม่</b> — มกษ.6701-2548 เนื้อเป็ด และ มกษ.9007-2548</span></li>
+        <li><span class="wn-ic ren"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"></path><path d="m13.5 6.5 4 4"></path></svg></span><span><b>อัปเดตชื่อมาตรฐาน 5 รายการ</b> — เช่น ฉบับที่ 387 ปี 2560 → ฉบับที่ 460 ปี 2568</span></li>
+        <li><span class="wn-ic sub"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6"></path><path d="M10 3v6L4.5 18.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9V3"></path><path d="M7 15h10"></path></svg></span><span><b>เพิ่มสารใหม่ 48 รายการ</b> — ส่วนใหญ่เป็นสารกำจัดศัตรูพืช</span></li>
+      </ul>
+      <button type="button" class="wn-cta" onclick="showDuck()">ดูเกณฑ์เนื้อเป็ด <svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></button>
+    </div>
+    <aside class="wn-side">
+      <h4><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg> ชื่อมาตรฐานที่เปลี่ยน</h4>
+      <div class="wn-ren"><div><s>DLD (12/07/2549) สินค้าปศุสัตว์</s><b>DLD (12/07/2549) สินค้าปศุสัตว์ (56 รายการ)</b></div><div><s>ประกาศกระทรวงสธ. ฉบับที่ 387 ปี 2560 อาหารที่มีสารพิษตกค้าง</s><b>ประกาศกระทรวงสธ. ฉบับที่ 460 ปี 2568 อาหารที่มีสารพิษตกค้าง</b></div><div><s>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง</s><b>ประกาศกระทรวงสธ. ฉบับที่ 303 ปี 2550 อาหารที่มียาสัตว์ตกค้าง (30 รายการ)</b></div><div><s>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3)</s><b>ประกาศกระทรวงสธ. ฉบับที่ 419 ปี 2563 อาหารที่มีสารพิษตกค้าง (ฉบับที่ 3) (6 รายการ)</b></div><div><s>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy</s><b>ประกาศกระทรวง สธ. ฉบับที่ 414 ปี 2563 เรื่องมาตรฐานอาหารที่มีสารปนเปื้อน (Heavy Metal)</b></div></div>
+    </aside>
+  </section>
+
+
 </main>
 
 <!-- ═══ MAIN ═══ -->
@@ -815,10 +873,10 @@ td { overflow-wrap: anywhere; }
 
 <main class="wrap" id="main-wrap" style="display:none">
   <nav class="tab-bar" aria-label="เมนูหลัก">
-    <button class="tab-btn tab-home" onclick="showLanding(true)" aria-label="หน้าหลัก">⌂ <span>หน้าหลัก</span></button>
-    <button class="tab-btn active" onclick="swTab(0)" aria-current="page">รายการตรวจ MRL</button>
-    <button class="tab-btn" onclick="swTab(1)">ตรวจ Lab Report</button>
-    <button class="tab-btn" onclick="swTab(2)">Admin</button>
+    <button class="tab-btn tab-home" onclick="showLanding(true)" aria-label="หน้าหลัก"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path><path d="M10 21v-6h4v6"></path></svg> <span>หน้าหลัก</span></button>
+    <button class="tab-btn active" onclick="swTab(0)" aria-current="page"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"></path><path d="m3 6 1.5 1.5L7 5"></path><path d="m3 12 1.5 1.5L7 11"></path><path d="m3 18 1.5 1.5L7 17"></path></svg>รายการตรวจ MRL</button>
+    <button class="tab-btn" onclick="swTab(1)"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"></path><path d="M13 3v5h5"></path><path d="M13 3l5 5v3"></path><circle cx="16.5" cy="16.5" r="3"></circle><path d="m21 21-2.3-2.3"></path></svg>ตรวจ Lab Report</button>
+    <button class="tab-btn" onclick="swTab(2)"><svg class="ic-svg " viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path></svg>Admin</button>
   </nav>
 
   <!-- ═══ TAB 0: รายการตรวจ ═══ -->
@@ -843,12 +901,12 @@ td { overflow-wrap: anywhere; }
 
     <div class="sec-lbl"><div class="sec-num">1</div><div class="sec-txt">เลือกสินค้า</div></div>
     <div class="prow">
-      <button class="pb" data-p="Pork"    onclick="t1.sp('Pork')">🐷 Pork</button>
-      <button class="pb" data-p="Egg"     onclick="t1.sp('Egg')">🥚 Egg</button>
-      <button class="pb" data-p="Chicken" onclick="t1.sp('Chicken')">🐔 Chicken</button>
-      <button class="pb" data-p="Poultry" onclick="t1.sp('Poultry')">🍗 Poultry</button>
-      <button class="pb" data-p="Shrimp"  onclick="t1.sp('Shrimp')">🍤 Shrimp</button>
-      <button class="pb" data-p="Duck" onclick="t1.sp('Duck')">🦆 Duck</button>
+      <button class="pb" data-p="Pork"    onclick="t1.sp('Pork')"><span class="pb-ic" aria-hidden="true">🐷</span>Pork <small>หมู</small></button>
+      <button class="pb" data-p="Egg"     onclick="t1.sp('Egg')"><span class="pb-ic" aria-hidden="true">🥚</span>Egg <small>ไข่</small></button>
+      <button class="pb" data-p="Chicken" onclick="t1.sp('Chicken')"><span class="pb-ic" aria-hidden="true">🐔</span>Chicken <small>ไก่</small></button>
+      <button class="pb" data-p="Poultry" onclick="t1.sp('Poultry')"><span class="pb-ic" aria-hidden="true">🍗</span>Poultry <small>สัตว์ปีก</small></button>
+      <button class="pb" data-p="Shrimp"  onclick="t1.sp('Shrimp')"><span class="pb-ic" aria-hidden="true">🍤</span>Shrimp <small>กุ้ง</small></button>
+      <button class="pb" data-p="Duck" onclick="t1.sp('Duck')"><span class="pb-ic" aria-hidden="true">🦆</span>Duck <small>เป็ด</small><em class="pb-new">ใหม่</em></button>
       <button class="pb" id="t1-all-prod" onclick="t1.spAll()" style="font-weight:800">✦ ALL</button>
     </div>
 
@@ -895,12 +953,12 @@ td { overflow-wrap: anywhere; }
     <div id="t2-mode-a" style="display:none">
       <div class="sec-lbl"><div class="sec-num">1</div><div class="sec-txt">เลือกสินค้า</div></div>
       <div class="prow">
-        <button class="pb" data-p2="Pork"    onclick="t2.sp('Pork')">🐷 Pork</button>
-        <button class="pb" data-p2="Egg"     onclick="t2.sp('Egg')">🥚 Egg</button>
-        <button class="pb" data-p2="Chicken" onclick="t2.sp('Chicken')">🐔 Chicken</button>
-        <button class="pb" data-p2="Poultry" onclick="t2.sp('Poultry')">🍗 Poultry</button>
-        <button class="pb" data-p2="Shrimp"  onclick="t2.sp('Shrimp')">🍤 Shrimp</button>
-      <button class="pb" data-p2="Duck" onclick="t2.sp('Duck')">🦆 Duck</button>
+        <button class="pb" data-p2="Pork"    onclick="t2.sp('Pork')"><span class="pb-ic" aria-hidden="true">🐷</span>Pork <small>หมู</small></button>
+        <button class="pb" data-p2="Egg"     onclick="t2.sp('Egg')"><span class="pb-ic" aria-hidden="true">🥚</span>Egg <small>ไข่</small></button>
+        <button class="pb" data-p2="Chicken" onclick="t2.sp('Chicken')"><span class="pb-ic" aria-hidden="true">🐔</span>Chicken <small>ไก่</small></button>
+        <button class="pb" data-p2="Poultry" onclick="t2.sp('Poultry')"><span class="pb-ic" aria-hidden="true">🍗</span>Poultry <small>สัตว์ปีก</small></button>
+        <button class="pb" data-p2="Shrimp"  onclick="t2.sp('Shrimp')"><span class="pb-ic" aria-hidden="true">🍤</span>Shrimp <small>กุ้ง</small></button>
+      <button class="pb" data-p2="Duck" onclick="t2.sp('Duck')"><span class="pb-ic" aria-hidden="true">🦆</span>Duck <small>เป็ด</small><em class="pb-new">ใหม่</em></button>
         <button class="pb" id="t2a-all-prod" onclick="t2.spAll()" style="font-weight:800">✦ ALL</button>
       </div>
       <div class="sec-lbl"><div class="sec-num">2</div><div class="sec-txt">เลือกมาตรฐาน</div></div>
@@ -1354,6 +1412,12 @@ function initLandingSuggestions(){
   document.addEventListener('click',event=>{
     if(!form.contains(event.target))close();
   });
+}
+function showDuck(){
+  bentoGo(0);
+  t1.clearAll();
+  t1.sp('Duck');
+  t1.sa();
 }
 function launchLookup(value){
   const query=value.trim();
