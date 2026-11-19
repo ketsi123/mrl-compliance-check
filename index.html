@@ -2350,7 +2350,7 @@ const t2={
           if(status==='PASS')color='var(--green)';
           else if(status==='FAIL')color='var(--red)';
         }
-        allResRows.push({sub:item.sub,std:r.std,prod:r.prod,mrlRaw:r.mrlRaw,found:item.found,status,color});
+        allResRows.push({sub:item.sub,std:r.std,prod:r.prod,mrlRaw:r.mrlRaw,found:item.found,unit:item.unit||'ppb (µg/kg)',foundPpb:Number.isFinite(found)?found:'',status,color});
       });
     });
     this._resData=allResRows;
@@ -2360,16 +2360,44 @@ const t2={
   _resFilterStds:new Set(),
   _resFilterProds:new Set(),
 
+  _filteredResRows(data=this._resData||[]){
+    return data.filter(row=>
+      (!this._resFilterStds.size||this._resFilterStds.has(row.std))&&
+      (!this._resFilterProds.size||this._resFilterProds.has(row.prod))
+    );
+  },
+  exportResultExcel(){
+    const results=this._filteredResRows();
+    if(!results.length){showToast('ไม่มีผลตรวจในตัวกรองที่เลือก','warn','⚠️');return;}
+    if(typeof XLSX==='undefined'){showToast('โหลดส่วน Export Excel ไม่สำเร็จ กรุณารีเฟรชแล้วลองอีกครั้ง','warn','⚠️');return;}
+    const rows=[['สาร','มาตรฐาน','สินค้า','เกณฑ์','หน่วยเกณฑ์','ค่าที่พบ','หน่วยที่กรอก','ค่าที่ใช้เทียบ (µg/kg)','ผล']];
+    for(const result of results){
+      const unit=result.unit||'ppb (µg/kg)';
+      const rawFound=result.found;
+      const hasFound=rawFound!==''&&rawFound!=null;
+      const numericFound=hasFound?Number(rawFound):NaN;
+      let comparison='';
+      if(Number.isFinite(numericFound))comparison=unit.toLowerCase().startsWith('ppm')?numericFound*1000:numericFound;
+      const rawLimit=result.mrlRaw;
+      const limit=rawLimit!==''&&rawLimit!=null&&Number.isFinite(Number(rawLimit))?Number(rawLimit):rawLimit;
+      rows.push([result.sub,result.std,result.prod,limit,'µg/kg (ppb)',hasFound&&Number.isFinite(numericFound)?numericFound:(rawFound??''),unit,comparison,result.status]);
+    }
+    const sheet=XLSX.utils.aoa_to_sheet(rows);
+    sheet['!cols']=[{wch:32},{wch:70},{wch:18},{wch:16},{wch:18},{wch:16},{wch:22},{wch:26},{wch:14}];
+    sheet['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:8}})};
+    const workbook=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook,sheet,'ผลตรวจสอบ');
+    const date=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'});
+    XLSX.writeFile(workbook,'MRL_Check_Results_'+date+'.xlsx');
+  },
+
   _renderResTable(data){
     const passCount=data.filter(row=>row.status==='PASS').length;
     const failCount=data.filter(row=>row.status==='FAIL').length;
     const unratedCount=data.length-passCount-failCount;
     const tone=failCount?'fail':unratedCount?'warn':'pass';
     const title=failCount?'พบผลไม่ผ่านเกณฑ์':unratedCount?'มีรายการที่ยังสรุปผลไม่ได้':'ผ่านทุกเกณฑ์ที่ตรวจ';
-    const filtered=data.filter(r=>
-      (!this._resFilterStds.size||this._resFilterStds.has(r.std))&&
-      (!this._resFilterProds.size||this._resFilterProds.has(r.prod))
-    );
+    const filtered=this._filteredResRows(data);
     const stdList=[...new Set(filtered.map(r=>r.std))].sort();
     const prodList=[...new Set(filtered.map(r=>r.prod))].filter(p=>p!=='—').sort();
     const mkDD=(id,vals,selSet)=>{
@@ -2411,6 +2439,9 @@ const t2={
             <span class="ic vf">ไม่ผ่าน ${failCount}</span>
             <span class="ic vw">ยังสรุปไม่ได้ ${unratedCount}</span>
           </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin:10px 0">
+          <button type="button" class="export-btn" onclick="t2.exportResultExcel()">📊 Export Excel</button>
         </div>
         <table style="width:100%;border-collapse:collapse">
           <thead><tr style="background:#E8EDF5">
