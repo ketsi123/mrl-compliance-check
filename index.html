@@ -1100,7 +1100,7 @@ td { overflow-wrap: anywhere; }
       <p>เข้าหน้านี้เพื่อเพิ่มมาตรฐานใหม่ อัปเดตมาตรฐานเดิม<br>และ import/export database</p>
       <div class="admin-field">
         <label for="admin-pass">Admin Password</label>
-        <input class="admin-input" id="admin-pass" type="password" placeholder="รหัสแอดมิน" autocomplete="current-password" onkeydown="if(event.key==='Enter')admin.login()">
+        <input class="admin-input" id="admin-pass" type="password" placeholder="รหัสแอดมิน 6 หลัก" autocomplete="current-password" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" onkeydown="if(event.key==='Enter')admin.login()">
       </div>
       <button class="admin-btn" onclick="admin.login()" style="width:100%;padding:12px;font-size:14px">🔓 เข้าสู่ระบบ Admin</button>
       <div class="admin-status" id="admin-login-status" style="text-align:center;margin-top:8px"></div>
