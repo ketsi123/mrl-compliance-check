@@ -1330,58 +1330,6 @@ const PRODUCTS=['Pork','Egg','Chicken','Poultry','Shrimp','Duck'];
 let wDATA=JSON.parse(JSON.stringify(DATA));
 let wSTD=JSON.parse(JSON.stringify(STD_META));
 
-const TH460='ประกาศกระทรวงสธ. ฉบับที่ 460 ปี 2568 อาหารที่มีสารพิษตกค้าง';
-const TH387='ประกาศกระทรวงสธ. ฉบับที่ 387 ปี 2560 อาหารที่มีสารพิษตกค้าง';
-const DDT_COMPONENTS="p,p′-DDT + o,p′-DDT + p,p′-DDE + p,p′-DDD";
-function correctThai460Rows(data, meta){
-  const chlor=data.find(d=>d.name==='Chlorpyrifos');
-  const ddt=data.find(d=>d.name==='DDT');
-  let total=data.find(d=>d.name==='Total DDT');
-  function move(item, product, dest, value){
-    if(item?.std_mrls?.[TH460]?.[product]==null && item?.std_mrls?.[TH387]?.[product]==null &&
-       dest?.std_mrls?.[TH460]?.[product]==null)return;
-    for(const key of [TH460,TH387]){
-      const entries=item?.std_mrls?.[key];
-      if(entries && (item!==dest || key===TH387)){
-        delete entries[product];
-        if(!Object.keys(entries).length)delete item.std_mrls[key];
-      }
-    }
-    (dest.std_mrls[TH460] ||= {})[product]=value;
-    if(!meta[TH460])meta[TH460]={label:'สธ. ฉบับที่ 460 (2568)',g:'ในประเทศ',note:'',country:TH460};
-  }
-  if(chlor)move(chlor,'Egg',chlor,'5');
-  if(ddt?.std_mrls?.[TH460]?.Pork!=null || ddt?.std_mrls?.[TH387]?.Pork!=null){
-    if(!total){total={name:'Total DDT',segment:ddt.segment,group:ddt.group,aliases:['DDT'],std_mrls:{}};data.push(total);}
-    move(ddt,'Pork',total,'1000');
-  }else if(total?.std_mrls?.[TH460]?.Pork!=null){
-    move(total,'Pork',total,'1000');
-  }
-}
-function thai460Rule(sub,std,prod){
-  if(std!==TH460 && std!==TH387)return '';
-  if(sub==='Chlorpyrifos'&&prod==='Egg')return 'egg-lod';
-  if((sub==='Total DDT'||sub==='DDT')&&prod==='Pork')return 'ddt-fat';
-  return '';
-}
-function thai460LimitText(sub,std,prod,value){
-  const rule=thai460Rule(sub,std,prod);
-  return rule==='egg-lod'?'&lt; 5 (LOD)':rule==='ddt-fat'?'1,000 (ฐานไขมัน)':value;
-}
-function checkThai460Rule(rule,found,confirmed){
-  if(!rule)return null;
-  if(!Number.isFinite(found)||found<0)return {status:'N/A',note:'กรอกผลจากใบรายงานก่อนเทียบเกณฑ์'};
-  if(rule==='egg-lod'){
-    if(found>=5)return {status:'FAIL',note:'ฉบับที่ 460 บัญชี 5: ผลต้องต่ำกว่า 5 µg/kg'};
-    if(!confirmed)return {status:'N/A',note:'ยืนยันว่า LOD ของวิธีไม่เกิน 5 µg/kg ก่อน'};
-    return {status:'PASS',note:'ผลต่ำกว่า 5 µg/kg และยืนยัน LOD ของวิธีแล้ว'};
-  }
-  if(!confirmed)return {status:'N/A',note:'ยืนยันในใบรายงานว่าเป็นผลรวม DDT 4 ตัว คิดต่อน้ำหนักไขมัน'};
-  return {status:found<=1000?'PASS':'FAIL',note:'เทียบผลรวม DDT 4 ตัวบนฐานไขมัน'};
-}
-correctThai460Rows(wDATA,wSTD);
-
-
 // ════ UTILS ════
 function updateLandingStats(){
   document.getElementById('b-nsub').textContent=wDATA.length.toLocaleString('th-TH');
@@ -1679,7 +1627,7 @@ async function autoSyncFromSheet(){
     const res=await gasCall({action:'read'});
     if(!res||res.error){if(badge)badge.textContent=badge._origText||'📦 Draft';return;}
     if(res.DATA&&res.DATA.length>0){
-      wDATA=keepBaseZeroMrls(res.DATA);wSTD=res.STD_META||{};correctThai460Rows(wDATA,wSTD);
+      wDATA=keepBaseZeroMrls(res.DATA);wSTD=res.STD_META;
       updateLandingStats();
       admin.updateStats&&admin.updateStats();
       admin.fillSubList&&admin.fillSubList();
@@ -1701,7 +1649,7 @@ async function syncFromSheet(){
   const res=await gasCall({action:'read'});
   if(!res||res.error){showToast('❌ ดึงข้อมูลไม่ได้: '+(res?.error||'unknown'),'warn','❌');return;}
   if(!res.DATA||res.DATA.length===0){showToast('⚠️ Sheets ยังว่างอยู่','warn','☁️');return;}
-  wDATA=keepBaseZeroMrls(res.DATA);wSTD=res.STD_META||{};correctThai460Rows(wDATA,wSTD);
+  wDATA=keepBaseZeroMrls(res.DATA);wSTD=res.STD_META;
   updateLandingStats();
   admin.updateStats();admin.fillSubList();admin.fillGrpList();admin.fillProdList();admin.fillStdSel();
   t1.applySearch();t1.render();xFilter.renderFiltered();
@@ -2120,7 +2068,7 @@ const t1={
       const n=entries.length;
       entries.forEach((e,i)=>{
         const sl=wSTD[e.std]?.label||e.std;
-        const d=e.isND?'ND':thai460LimitText(item.name,e.std,e.prod,e.val);
+        const d=e.isND?'ND':e.val;
         const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));
         const vs=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2)':'');
         const top=i===0?'border-top:2px solid var(--bd);':'';
@@ -2170,7 +2118,7 @@ const t1={
       entries.forEach((e,i)=>{
         const sl=wSTD[e.std]?.label||e.std;
         const sd=isStdMatch&&matchStds.includes(e.std)?`<span class="hl">${sl}</span>`:sl;
-        const d=e.isND?'ND':thai460LimitText(item.name,e.std,e.prod,e.val);
+        const d=e.isND?'ND':e.val;
         const isLong=!e.isND&&String(d).length>12&&!/^[\d,.\s<>≤≥\-–%]+$/.test(String(d));
         const vs=e.isND?'color:var(--red);font-weight:700':(isLong?'white-space:normal;word-break:break-word;font-family:inherit;font-weight:500;font-size:10.5px;color:var(--t2)':'');
         const top=i===0?'border-top:2px solid var(--bd);':'';
@@ -2189,7 +2137,7 @@ const t1={
     const rows=this._exportRows||[];
     if(!rows.length||typeof XLSX==='undefined'){alert('ไม่มีข้อมูล');return;}
     const ws=[[ 'ชื่อสาร','Segment','กลุ่ม','ข้อกำหนด','สินค้า','มาตรฐาน','MRL (ug/kg)']];
-    for(const{item,entries,rt} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'',i===0?(rt==='nd'?'ต้องตรวจไม่พบ':'มี MRL'):'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?'ND':thai460LimitText(item.name,e.std,e.prod,e.val).toString().replace('&lt;','<')]));
+    for(const{item,entries,rt} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'',i===0?(rt==='nd'?'ต้องตรวจไม่พบ':'มี MRL'):'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?'ND':e.val]));
     const s=XLSX.utils.aoa_to_sheet(ws);s['!cols']=[{wch:40},{wch:12},{wch:22},{wch:18},{wch:12},{wch:20},{wch:12}];
     const wb=XLSX.utils.book_new();const m=this._exportMeta||{};
     const pStr=(m.prods||[]).join('+').replace(/[\/:*?\[\]]/g,'');
@@ -2200,7 +2148,7 @@ const t1={
     const rows=this._exportRowsSearch||[];
     if(!rows.length||typeof XLSX==='undefined'){alert('ไม่มีข้อมูล');return;}
     const ws=[['ชื่อสาร','Segment','กลุ่ม','สินค้า','มาตรฐาน','MRL (ug/kg)']];
-    for(const{item,entries} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?'ND':thai460LimitText(item.name,e.std,e.prod,e.val).toString().replace('&lt;','<')]));
+    for(const{item,entries} of rows) entries.forEach((e,i)=>ws.push([i===0?item.name:'',i===0?item.segment:'',i===0?item.group:'', (EMOJI[e.prod]||'')+' '+e.prod,wSTD[e.std]?.label||e.std,e.isND?'ND':e.val]));
     const s=XLSX.utils.aoa_to_sheet(ws);s['!cols']=[{wch:40},{wch:12},{wch:22},{wch:14},{wch:20},{wch:12}];
     const wb=XLSX.utils.book_new();const q=(this.q||'search').replace(/[\/:*?\[\]]/g,'').slice(0,20);
     XLSX.utils.book_append_sheet(wb,s,('MRL_'+q).slice(0,31));
@@ -2272,7 +2220,7 @@ _quickAdd(name, mrl){
     document.getElementById('t2c-quick-search').value='';
     // ไม่เพิ่มซ้ำ
     if(this._quickItems.find(x=>x.sub===name)) return;
-    this._quickItems.push({sub:name, mrl, found:'', unit:'ppb (µg/kg)', ruleConfirmed:false});
+    this._quickItems.push({sub:name, mrl, found:'', unit:'ppb (µg/kg)'});
     this._renderQuickTable();
   },
 _renderQuickTable(){
@@ -2283,8 +2231,8 @@ _renderQuickTable(){
     list.style.display='';
     tbody.innerHTML=this._quickItems.map((item,i)=>`
       <tr style="border-bottom:1px solid var(--bd)">
-        <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}${item.sub==='Total DDT'||item.sub==='Chlorpyrifos'?`<label style="display:block;margin-top:5px;font-size:11px;font-weight:400"><input type="checkbox" ${item.ruleConfirmed?'checked':''} onchange="t2._quickItems[${i}].ruleConfirmed=this.checked"> ${item.sub==='Total DDT'?`ยืนยันผลรวม 4 ตัวบนฐานไขมัน<br><small>${DDT_COMPONENTS}</small>`:'ยืนยัน LOD ≤ 5 µg/kg สำหรับไข่ (ฉบับที่ 460)'}</label>`:''}</td>
-        <td style="padding:8px 12px;text-align:right;font-size:13px;color:var(--t2)">${item.sub==='Total DDT'?'1,000 (ฐานไขมัน)':item.mrl}</td>
+        <td style="padding:8px 12px;font-size:13px;font-weight:600">${item.sub}</td>
+        <td style="padding:8px 12px;text-align:right;font-size:13px;color:var(--t2)">${item.mrl}</td>
         <td style="padding:6px 8px">
           <input type="number" min="0" step="any" value="${item.found}"
             style="width:100%;padding:5px 8px;border:1.5px solid var(--bd);border-radius:6px;font-size:13px;text-align:right"
@@ -2344,12 +2292,7 @@ _checkQuick(){
         let status='N/A';let color='var(--t3)';
         // FIX: ต้องมีค่าที่กรอกจริง (ไม่ใช่ว่าง และแปลงเป็นตัวเลขได้) ก่อนถึงจะตัดสิน PASS/FAIL
         // ไม่กรอกค่า = N/A เสมอ ไม่ใช่ PASS อัตโนมัติ
-        const rule=thai460Rule(item.sub,r.std,r.prod);
-        const scoped=checkThai460Rule(rule,found,item.ruleConfirmed===true);
-        if(scoped){
-          status=scoped.status;
-          r.mrlRaw=rule==='egg-lod'?'5':'1000';
-        }else if(r.mrlRaw!=='—'&&item.found!==''&&!isNaN(found)){
+        if(r.mrlRaw!=='—'&&item.found!==''&&!isNaN(found)){
           if(r.mrlRaw==='ND'||r.mrlRaw==='Not Detected'){
             status=found===0?'PASS':'FAIL';
           } else if(!isNaN(parseFloat(r.mrlRaw))){
@@ -2358,8 +2301,7 @@ _checkQuick(){
           if(status==='PASS')color='var(--green)';
           else if(status==='FAIL')color='var(--red)';
         }
-        if(scoped)color=status==='PASS'?'var(--green)':status==='FAIL'?'var(--red)':'var(--t3)';
-        allResRows.push({sub:item.sub,std:r.std,prod:r.prod,mrlRaw:r.mrlRaw,limitText:thai460LimitText(item.sub,r.std,r.prod,r.mrlRaw),note:scoped?.note||'',found:item.found,unit:item.unit||'ppb (µg/kg)',status,color});
+        allResRows.push({sub:item.sub,std:r.std,prod:r.prod,mrlRaw:r.mrlRaw,found:item.found,unit:item.unit||'ppb (µg/kg)',status,color});
       });
     });
     this._resData=allResRows;
@@ -2379,7 +2321,7 @@ exportResultExcel(){
     const results=this._filteredResRows();
     if(!results.length){showToast('ไม่มีผลตรวจในตัวกรองที่เลือก','warn','⚠️');return;}
     if(typeof XLSX==='undefined'){showToast('โหลดส่วน Export Excel ไม่สำเร็จ กรุณารีเฟรชแล้วลองอีกครั้ง','warn','⚠️');return;}
-    const rows=[['สาร','มาตรฐาน','สินค้า','เกณฑ์','หน่วยเกณฑ์','ค่าที่พบ','หน่วยที่กรอก','ค่าที่ใช้เทียบ (µg/kg)','ผล','หมายเหตุ']];
+    const rows=[['สาร','มาตรฐาน','สินค้า','เกณฑ์','หน่วยเกณฑ์','ค่าที่พบ','หน่วยที่กรอก','ค่าที่ใช้เทียบ (µg/kg)','ผล']];
     for(const result of results){
       const unit=result.unit||'ppb (µg/kg)';
       const rawFound=result.found;
@@ -2388,12 +2330,12 @@ exportResultExcel(){
       let comparison='';
       if(Number.isFinite(numericFound))comparison=unit.toLowerCase().startsWith('ppm')?numericFound*1000:numericFound;
       const rawLimit=result.mrlRaw;
-      const limit=result.note?String(result.limitText).replace('&lt;','<'):rawLimit!==''&&rawLimit!=null&&Number.isFinite(Number(rawLimit))?Number(rawLimit):rawLimit;
-      rows.push([result.sub,result.std,result.prod,limit,'µg/kg (ppb)',hasFound&&Number.isFinite(numericFound)?numericFound:(rawFound??''),unit,comparison,result.status,result.note]);
+      const limit=rawLimit!==''&&rawLimit!=null&&Number.isFinite(Number(rawLimit))?Number(rawLimit):rawLimit;
+      rows.push([result.sub,result.std,result.prod,limit,'µg/kg (ppb)',hasFound&&Number.isFinite(numericFound)?numericFound:(rawFound??''),unit,comparison,result.status]);
     }
     const sheet=XLSX.utils.aoa_to_sheet(rows);
-    sheet['!cols']=[{wch:32},{wch:70},{wch:18},{wch:16},{wch:18},{wch:16},{wch:22},{wch:26},{wch:14},{wch:58}];
-    sheet['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:9}})};
+    sheet['!cols']=[{wch:32},{wch:70},{wch:18},{wch:16},{wch:18},{wch:16},{wch:22},{wch:26},{wch:14}];
+    sheet['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:8}})};
     const workbook=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook,sheet,'ผลตรวจสอบ');
     const date=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'});
@@ -2434,9 +2376,9 @@ _renderResTable(data){
       <td style="padding:8px 12px;font-size:13px;font-weight:600">${r.sub}</td>
       <td style="padding:8px 12px;font-size:12px;color:var(--blue)">${r.std}</td>
       <td style="padding:8px 12px;font-size:12px;color:var(--t2)">${r.prod}</td>
-      <td style="padding:8px 12px;font-size:13px;color:var(--t2);text-align:right">${r.limitText}</td>
+      <td style="padding:8px 12px;font-size:13px;color:var(--t2);text-align:right">${r.mrlRaw}</td>
       <td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600">${r.found||'—'}</td>
-      <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${r.color}">${r.status}</span>${r.note?`<div style="font-size:11px;color:var(--t2)">${r.note}</div>`:''}</td>
+      <td style="padding:8px 12px;text-align:center"><span style="font-weight:800;color:${r.color}">${r.status}</span></td>
     </tr>`).join('');
     document.getElementById('t2c-res').innerHTML=`
       <div class="manual-result">
@@ -2675,9 +2617,7 @@ checkC(){
       if(!mrl) return;
       const mrlNum=mrl==='ND'?0:parseFloat(mrl);
       const pass=mrl==='ND'?valPpb===0:(!isNaN(mrlNum)&&valPpb<=mrlNum);
-      const rule=thai460Rule(sub,t2.stdC,t2.prodC);
-      const checked=checkThai460Rule(rule,valPpb,false);
-      results.push({sub,val:valPpb,mrl:thai460LimitText(sub,t2.stdC,t2.prodC,mrl),pass:checked?(checked.status==='N/A'?null:checked.status==='PASS'):pass});
+      results.push({sub,val:valPpb,mrl,pass});
     });
     // แถว custom
     document.querySelectorAll('[data-sub-custom]').forEach(inp=>{
@@ -2691,9 +2631,7 @@ checkC(){
       const mrl=item?.std_mrls[t2.stdC]?.[t2.prodC]||'N/A';
       const mrlNum=mrl==='ND'?0:parseFloat(mrl);
       const pass=mrl==='N/A'?null:mrl==='ND'?valPpb===0:(!isNaN(mrlNum)&&valPpb<=mrlNum);
-      const rule=thai460Rule(sub,t2.stdC,t2.prodC);
-      const checked=checkThai460Rule(rule,valPpb,false);
-      results.push({sub,val:valPpb,mrl:thai460LimitText(sub,t2.stdC,t2.prodC,mrl),pass:checked?(checked.status==='N/A'?null:checked.status==='PASS'):pass});
+      results.push({sub,val:valPpb,mrl,pass});
     });
     if(!results.length){ showToast('กรอกค่าอย่างน้อย 1 รายการ','warn','⚠️'); return; }
     const passN=results.filter(r=>r.pass===true).length;
@@ -3158,10 +3096,10 @@ const admin={
     if(!this.auditLog.length){showToast('ไม่มีรายการให้ Undo','warn','⚠️');return;}
     const last=this.auditLog[0];
     if(this.auditLog.length>=2){
-      try{const snap=JSON.parse(this.auditLog[1].snapshot);wDATA=snap.data;wSTD=snap.std;correctThai460Rows(wDATA,wSTD);}
+      try{const snap=JSON.parse(this.auditLog[1].snapshot);wDATA=snap.data;wSTD=snap.std;}
       catch(e){showToast('ไม่สามารถ Undo ได้','warn','⚠️');return;}
     } else {
-      wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));correctThai460Rows(wDATA,wSTD);
+      wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));
     }
     this.auditLog.shift();
     this.updateStats();this.fillStdSel();this.fillSubList();this.preview();this.renderAuditLog();this.saveToStorage();
@@ -3195,7 +3133,7 @@ const admin={
     const note=document.getElementById('admin-storage-note');if(note)note.style.display='none';
   },
   resetToEmbedded(){
-    wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));correctThai460Rows(wDATA,wSTD);
+    wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));
     this.init();
     const st=document.getElementById('admin-save-status');
     if(st)st.innerHTML='<span style="color:var(--amb)">↩ รีเซ็ตเป็นข้อมูลใน HTML แล้ว</span>';
@@ -3225,7 +3163,7 @@ const admin={
     try{
       if(f.name.endsWith('.json')){
         const parsed=JSON.parse(await f.text());
-        if(parsed.data&&parsed.std_meta){wDATA=parsed.data;wSTD=parsed.std_meta;correctThai460Rows(wDATA,wSTD);}
+        if(parsed.data&&parsed.std_meta){wDATA=parsed.data;wSTD=parsed.std_meta;}
         else throw new Error('format ไม่ถูกต้อง');
       } else {
         if(typeof XLSX==='undefined')throw new Error('SheetJS ยังโหลดไม่เสร็จ');
@@ -3536,9 +3474,9 @@ const draftMgr={
     try{
       const d=localStorage.getItem('mrl_published_data');
       const s=localStorage.getItem('mrl_published_std');
-      if(d&&s){wDATA=JSON.parse(d);wSTD=JSON.parse(s);correctThai460Rows(wDATA,wSTD);}
-      else{wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));correctThai460Rows(wDATA,wSTD);}
-    }catch(e){wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));correctThai460Rows(wDATA,wSTD);}
+      if(d&&s){wDATA=JSON.parse(d);wSTD=JSON.parse(s);}
+      else{wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));}
+    }catch(e){wDATA=JSON.parse(JSON.stringify(DATA));wSTD=JSON.parse(JSON.stringify(STD_META));}
     this.isDirty=false;
     document.getElementById('draft-bar').classList.remove('show');
     admin.updateStats();admin.fillStdSel();admin.fillSubList();admin.preview();
